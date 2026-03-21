@@ -226,6 +226,39 @@ svg.chart{width:100%;height:180px;display:block}
 ::-webkit-scrollbar{width:4px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+/* ── CONNECTIONS ── */
+.conn-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:12px;transition:border-color .15s}
+.conn-card.connected{border-color:rgba(0,200,150,.25)}
+.conn-card-header{display:flex;align-items:center;gap:12px}
+.conn-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.conn-name{font-size:14px;font-weight:700;color:var(--text)}
+.conn-handle{font-size:11px;color:var(--muted2);margin-top:2px}
+.conn-status{margin-left:auto;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:3px 9px;border-radius:4px}
+.conn-status.live{background:rgba(0,200,150,.1);color:var(--success)}
+.conn-status.pending{background:rgba(255,179,0,.1);color:var(--warn)}
+.conn-status.off{background:rgba(90,106,126,.15);color:var(--muted2)}
+.conn-stats{display:flex;gap:16px}
+.conn-stat{font-size:11px;color:var(--muted2)}.conn-stat strong{display:block;font-family:'DM Mono',monospace;font-size:13px;color:var(--text);font-weight:500}
+.conn-btn{width:100%;padding:9px;border-radius:7px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text);transition:all .15s}
+.conn-btn:hover{border-color:var(--accent);color:var(--accent)}
+.conn-btn.connected-btn{border-color:rgba(255,68,68,.3);color:var(--danger)}
+.conn-btn.connected-btn:hover{background:rgba(255,68,68,.08)}
+.manual-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
+.manual-row:last-child{border-bottom:none}
+.manual-plat-icon{font-size:18px;width:28px;text-align:center;flex-shrink:0}
+.manual-plat-name{font-size:13px;font-weight:600;color:var(--text);width:100px;flex-shrink:0}
+.manual-input{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:'DM Mono',monospace;font-size:11px;padding:7px 10px;outline:none;transition:border-color .15s}
+.manual-input:focus{border-color:var(--accent)}
+.manual-save-btn{padding:7px 14px;border-radius:7px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--muted2);transition:all .15s;white-space:nowrap}
+.manual-save-btn:hover{border-color:var(--success);color:var(--success)}
+.review-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
+.review-row:last-child{border-bottom:none}
+.review-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;white-space:nowrap}
+.rb-easy{background:rgba(0,200,150,.1);color:var(--success)}
+.rb-medium{background:rgba(255,179,0,.1);color:var(--warn)}
+.rb-hard{background:rgba(255,68,68,.1);color:var(--danger)}
+.rb-instant{background:rgba(0,229,255,.1);color:var(--accent)}
 </style>
 </head>
 <body>
@@ -289,11 +322,14 @@ svg.chart{width:100%;height:180px;display:block}
     <div class="nav-label">Analytics</div>
     <div class="nav-item" onclick="switchTab('analytics',this)"><span class="icon">◎</span> Analytics</div>
     <div class="nav-label">Platforms</div>
-    <div class="nav-item"><span class="icon">📸</span> Instagram<div class="platform-dots"><div class="dot" style="background:var(--success)"></div></div></div>
-    <div class="nav-item"><span class="icon">𝕏</span> X / Twitter<div class="platform-dots"><div class="dot" style="background:var(--success)"></div></div></div>
-    <div class="nav-item"><span class="icon">▶</span> TikTok<div class="platform-dots"><div class="dot" style="background:var(--warn)"></div></div></div>
-    <div class="nav-item"><span class="icon">in</span> LinkedIn<div class="platform-dots"><div class="dot" style="background:var(--muted)"></div></div></div>
-    <div class="nav-item"><span class="icon">▷</span> YouTube<div class="platform-dots"><div class="dot" style="background:var(--success)"></div></div></div>
+    <div class="nav-item" onclick="switchTab('connections',this)"><span class="icon">🔗</span> Connect Accounts</div>
+    <div class="nav-item" id="nav-ig"><span class="icon">📸</span> Instagram<div class="platform-dots"><div class="dot" id="dot-ig" style="background:var(--muted)"></div></div></div>
+    <div class="nav-item" id="nav-tw"><span class="icon">𝕏</span> X / Twitter<div class="platform-dots"><div class="dot" id="dot-tw" style="background:var(--muted)"></div></div></div>
+    <div class="nav-item" id="nav-tk"><span class="icon">▶</span> TikTok<div class="platform-dots"><div class="dot" id="dot-tk" style="background:var(--muted)"></div></div></div>
+    <div class="nav-item" id="nav-li"><span class="icon">in</span> LinkedIn<div class="platform-dots"><div class="dot" id="dot-li" style="background:var(--muted)"></div></div></div>
+    <div class="nav-item" id="nav-yt"><span class="icon">▷</span> YouTube<div class="platform-dots"><div class="dot" id="dot-yt" style="background:var(--muted)"></div></div></div>
+    <div class="nav-item" id="nav-fb"><span class="icon">f</span> Facebook<div class="platform-dots"><div class="dot" id="dot-fb" style="background:var(--muted)"></div></div></div>
+    <div class="nav-item" id="nav-sc"><span class="icon">👻</span> Snapchat<div class="platform-dots"><div class="dot" id="dot-sc" style="background:var(--muted)"></div></div></div>
   </nav>
 </aside>
 
@@ -553,8 +589,53 @@ svg.chart{width:100%;height:180px;display:block}
 
   </div>
 
+  </div><!-- /content (analytics end) -->
+
+  <!-- ────────────────── CONNECTIONS ────────────────── -->
+  <div id="tab-connections" class="tab-panel" style="padding:24px">
+
+    <div style="margin-bottom:20px">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.05em;margin-bottom:4px">Connected Accounts</div>
+      <div style="font-size:13px;color:var(--muted2)">Connect your social accounts to enable real analytics, auto-posting, and one-click publishing.</div>
+    </div>
+
+    <!-- OAuth platforms -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:24px" id="connections-grid">
+      <!-- populated by JS -->
+    </div>
+
+    <!-- Manual token section -->
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+        <div class="card-title">Manual API Keys</div>
+        <span style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;background:rgba(255,179,0,.1);color:var(--warn);padding:3px 8px;border-radius:4px">Fallback Option</span>
+      </div>
+      <div class="card-sub" style="margin-bottom:16px">If OAuth isn't available yet for a platform, paste your API token directly. These are stored securely in your database.</div>
+
+      <div id="manual-tokens-list">
+        <!-- populated by JS -->
+      </div>
+
+      <div style="margin-top:16px;padding:12px;background:rgba(0,229,255,.04);border:1px solid rgba(0,229,255,.12);border-radius:8px;font-size:12px;color:var(--muted2);line-height:1.6">
+        <strong style="color:var(--accent)">Where to get your tokens:</strong><br>
+        Instagram/Facebook → <a href="https://developers.facebook.com/tools/explorer" target="_blank" style="color:var(--accent)">Meta Graph API Explorer</a> &nbsp;·&nbsp;
+        Twitter → <a href="https://developer.twitter.com/en/portal/dashboard" target="_blank" style="color:var(--tw)">developer.twitter.com</a> &nbsp;·&nbsp;
+        YouTube → <a href="https://console.cloud.google.com" target="_blank" style="color:var(--yt)">Google Cloud Console</a>
+      </div>
+    </div>
+
+    <!-- OAuth status / approval guide -->
+    <div class="card" style="margin-top:14px">
+      <div class="card-title">OAuth App Review Status</div>
+      <div class="card-sub">Submit your app to each platform to enable one-click login for your users.</div>
+      <div id="review-status-list">
+        <!-- populated by JS -->
+      </div>
+    </div>
+
+  </div>
+
   </div><!-- /content -->
-</div><!-- /main -->
 </div><!-- /shell -->
 </div><!-- /app-shell -->
 
@@ -563,8 +644,8 @@ svg.chart{width:100%;height:180px;display:block}
 //  SUPABASE CONFIG
 //  Replace these with your Supabase project values
 // ═══════════════════════════════════════════════
-const SUPABASE_URL = 'https://mlggtajkjchmdlkgiwll.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1sZ2d0YWpramNobWRsa2dpd2xsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQxMjA3NTQsImV4cCI6MjA4OTY5Njc1NH0.WGYkDG_COs16e16pS2Z1PBJsJxeKryL6hszkR_kVLj8';
+const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
 
 let sb = null;
 let currentUser = null;
@@ -654,6 +735,7 @@ function loadApp(user) {
   loadPostsFromAPI();
   renderCalendar();
   loadAnalytics();
+  loadConnections();
 }
 
 // ── TAB SWITCHING ──────────────────────────────
@@ -662,11 +744,12 @@ function switchTab(tab, el) {
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   document.getElementById('tab-'+tab).classList.add('active');
   if(el) el.classList.add('active');
-  const titles={dashboard:'Dashboard',composer:'Post Composer',queue:'Post Queue',calendar:'Content Calendar',ideas:'Idea Engine',proofread:'Proofread & Markup',analytics:'Analytics'};
+  const titles={dashboard:'Dashboard',composer:'Post Composer',queue:'Post Queue',calendar:'Content Calendar',ideas:'Idea Engine',proofread:'Proofread & Markup',analytics:'Analytics',connections:'Connected Accounts'};
   document.getElementById('topbar-title').textContent=titles[tab]||tab;
   if(tab==='queue') loadPostsFromAPI();
   if(tab==='calendar') renderCalendar();
   if(tab==='analytics') { analyticsData=null; loadAnalytics(); }
+  if(tab==='connections') renderConnectionsTab();
 }
 
 // ── PLATFORM TOGGLE ────────────────────────────
@@ -1265,6 +1348,221 @@ function renderTopPosts(key, color) {
 }
 
 function fmtNum(n) { return n>=1000?(n/1000).toFixed(1)+'k':String(n); }
+// ══════════════════════════════════════════════════════════
+const PLATFORMS = [
+  { key:'ig',  name:'Instagram',  icon:'📸', color:'var(--ig)',  bg:'rgba(225,48,108,.12)',
+    oauth: false, oauthLabel:'Connect with Meta',
+    manualLabel:'Access Token', manualHint:'From Meta Graph API Explorer',
+    reviewTime:'1–2 weeks', reviewDiff:'medium',
+    devUrl:'https://developers.facebook.com' },
+  { key:'tw',  name:'X / Twitter',icon:'𝕏',  color:'var(--tw)', bg:'rgba(29,161,242,.12)',
+    oauth: true,  oauthLabel:'Connect with X',
+    manualLabel:'Bearer Token', manualHint:'From developer.twitter.com',
+    reviewTime:'Instant',    reviewDiff:'instant',
+    devUrl:'https://developer.twitter.com/en/portal/dashboard' },
+  { key:'yt',  name:'YouTube',    icon:'▷', color:'var(--yt)', bg:'rgba(255,0,0,.12)',
+    oauth: true,  oauthLabel:'Connect with Google',
+    manualLabel:'API Key', manualHint:'From Google Cloud Console',
+    reviewTime:'1–3 days',   reviewDiff:'easy',
+    devUrl:'https://console.cloud.google.com' },
+  { key:'tk',  name:'TikTok',     icon:'▶', color:'var(--tk)', bg:'rgba(255,0,80,.12)',
+    oauth: false, oauthLabel:'Connect with TikTok',
+    manualLabel:'Access Token', manualHint:'From TikTok for Developers',
+    reviewTime:'2–4 weeks',  reviewDiff:'hard',
+    devUrl:'https://developers.tiktok.com' },
+  { key:'li',  name:'LinkedIn',   icon:'in', color:'var(--li)', bg:'rgba(10,102,194,.12)',
+    oauth: false, oauthLabel:'Connect with LinkedIn',
+    manualLabel:'Access Token', manualHint:'From LinkedIn Developer Portal',
+    reviewTime:'1–2 weeks',  reviewDiff:'medium',
+    devUrl:'https://www.linkedin.com/developers' },
+  { key:'fb',  name:'Facebook',   icon:'f',  color:'var(--fb)', bg:'rgba(24,119,242,.12)',
+    oauth: false, oauthLabel:'Connect with Meta',
+    manualLabel:'Page Access Token', manualHint:'From Meta Graph API Explorer',
+    reviewTime:'1–2 weeks',  reviewDiff:'medium',
+    devUrl:'https://developers.facebook.com' },
+  { key:'sc',  name:'Snapchat',   icon:'👻', color:'#c8c800',  bg:'rgba(255,252,0,.08)',
+    oauth: false, oauthLabel:'Connect with Snapchat',
+    manualLabel:'Access Token', manualHint:'From Snapchat for Developers',
+    reviewTime:'2–4 weeks',  reviewDiff:'hard',
+    devUrl:'https://kit.snapchat.com' },
+];
+
+// Stored connections: { [key]: { connected, username, token, method } }
+let connections = {};
+
+async function loadConnections() {
+  if (isDemo) return;
+  try {
+    const headers = await getAuthHeaders();
+    const res = await fetch('/api/connections', { headers });
+    if (res.ok) {
+      const data = await res.json();
+      data.forEach(c => {
+        connections[c.platform] = { connected: true, username: c.username || '', method: 'oauth' };
+      });
+      updateSidebarDots();
+    }
+  } catch(e) { /* silently ignore — connections are optional */ }
+}
+
+function updateSidebarDots() {
+  PLATFORMS.forEach(p => {
+    const dot = document.getElementById('dot-' + p.key);
+    if (!dot) return;
+    dot.style.background = connections[p.key]?.connected ? 'var(--success)' : 'var(--muted)';
+  });
+}
+
+function renderConnectionsTab() {
+  renderConnectionsGrid();
+  renderManualTokens();
+  renderReviewStatus();
+}
+
+function renderConnectionsGrid() {
+  const grid = document.getElementById('connections-grid');
+  if (!grid) return;
+  grid.innerHTML = PLATFORMS.map(p => {
+    const conn = connections[p.key];
+    const isConn = conn?.connected;
+    const statusClass = isConn ? 'live' : p.oauth ? 'pending' : 'off';
+    const statusLabel = isConn ? '● Live' : p.oauth ? '○ Ready' : '○ Not connected';
+    const analyticsData_ = analyticsData?.[p.key];
+    const statsHtml = isConn && analyticsData_ ? `
+      <div class="conn-stats">
+        <div class="conn-stat"><strong>${fmtNum(analyticsData_.followers||0)}</strong>Followers</div>
+        <div class="conn-stat"><strong>${analyticsData_.engagement_rate||0}%</strong>Engagement</div>
+        <div class="conn-stat"><strong>${analyticsData_.growth_30d>0?'+':''}${fmtNum(analyticsData_.growth_30d||0)}</strong>30d Growth</div>
+      </div>` : isConn ? `<div style="font-size:12px;color:var(--muted2)">Connected as @${conn.username||'account'}</div>` :
+      `<div style="font-size:12px;color:var(--muted2);line-height:1.5">${p.oauth ? 'Click below to connect with OAuth — no API key needed.' : 'Use manual token below, or wait for OAuth app approval.'}</div>`;
+
+    const btnHtml = isConn
+      ? `<button class="conn-btn connected-btn" onclick="disconnectPlatform('${p.key}')">Disconnect</button>`
+      : p.oauth
+      ? `<button class="conn-btn" style="border-color:${p.color};color:${p.color}" onclick="oauthConnect('${p.key}')">${p.oauthLabel} →</button>`
+      : `<button class="conn-btn" onclick="switchToManual('${p.key}')">Add API Token →</button>`;
+
+    return `<div class="conn-card ${isConn?'connected':''}">
+      <div class="conn-card-header">
+        <div class="conn-icon" style="background:${p.bg}">${p.icon}</div>
+        <div>
+          <div class="conn-name">${p.name}</div>
+          <div class="conn-handle">${isConn && conn.username ? '@'+conn.username : p.manualHint}</div>
+        </div>
+        <span class="conn-status ${statusClass}">${statusLabel}</span>
+      </div>
+      ${statsHtml}
+      ${btnHtml}
+    </div>`;
+  }).join('');
+}
+
+function renderManualTokens() {
+  const list = document.getElementById('manual-tokens-list');
+  if (!list) return;
+  list.innerHTML = PLATFORMS.map(p => `
+    <div class="manual-row" id="manual-row-${p.key}">
+      <div class="manual-plat-icon">${p.icon}</div>
+      <div class="manual-plat-name">${p.name}</div>
+      <input class="manual-input" id="token-${p.key}" type="password"
+        placeholder="${p.manualLabel} — ${p.manualHint}"
+        value="${connections[p.key]?.token||''}">
+      <button class="manual-save-btn" onclick="saveManualToken('${p.key}')">
+        ${connections[p.key]?.connected && connections[p.key]?.method==='manual' ? '✓ Saved' : 'Save'}
+      </button>
+    </div>`).join('');
+}
+
+function renderReviewStatus() {
+  const list = document.getElementById('review-status-list');
+  if (!list) return;
+  const diffMap = { instant:'rb-instant', easy:'rb-easy', medium:'rb-medium', hard:'rb-hard' };
+  const diffLabel = { instant:'Instant', easy:'Easy', medium:'Medium', hard:'Hard' };
+  list.innerHTML = PLATFORMS.map(p => `
+    <div class="review-row">
+      <div style="font-size:18px;width:28px;text-align:center">${p.icon}</div>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:600;color:var(--text)">${p.name}</div>
+        <div style="font-size:11px;color:var(--muted2);margin-top:2px">Review time: ${p.reviewTime}</div>
+      </div>
+      <span class="review-badge ${diffMap[p.reviewDiff]}">${diffLabel[p.reviewDiff]}</span>
+      <a href="${p.devUrl}" target="_blank" class="btn btn-ghost btn-sm" style="font-size:11px;text-decoration:none">Apply →</a>
+    </div>`).join('');
+}
+
+async function saveManualToken(key) {
+  const input = document.getElementById('token-' + key);
+  const token = input?.value?.trim();
+  if (!token) { toast('Paste a token first', 'error'); return; }
+  const btn = input.nextElementSibling;
+  btn.textContent = '...'; btn.disabled = true;
+  if (!isDemo) {
+    try {
+      const headers = await getAuthHeaders();
+      await fetch('/api/connections', { method:'POST', headers,
+        body: JSON.stringify({ platform: key, access_token: token, method: 'manual' }) });
+    } catch(e) { toast('Save failed: ' + e.message, 'error'); btn.disabled=false; btn.textContent='Save'; return; }
+  }
+  connections[key] = { connected: true, token, method: 'manual' };
+  btn.textContent = '✓ Saved'; btn.style.color = 'var(--success)'; btn.style.borderColor = 'var(--success)';
+  btn.disabled = false;
+  updateSidebarDots();
+  renderConnectionsGrid();
+  toast(`${PLATFORMS.find(p=>p.key===key)?.name} connected ✓`);
+}
+
+function oauthConnect(key) {
+  const p = PLATFORMS.find(x=>x.key===key);
+  // OAuth URLs — these go through /api/auth/[platform] which handles the flow
+  const oauthUrls = {
+    tw: '/api/auth/twitter',
+    yt: '/api/auth/youtube',
+  };
+  const url = oauthUrls[key];
+  if (!url) { toast('OAuth not yet configured for ' + p?.name, 'error'); return; }
+  // Open OAuth popup
+  const w = window.open(url + '?user_id=' + currentUser?.id, 'oauth_popup',
+    'width=600,height=700,scrollbars=yes,resizable=yes');
+  // Listen for completion message from popup
+  const handler = (e) => {
+    if (e.data?.type === 'oauth_success' && e.data?.platform === key) {
+      window.removeEventListener('message', handler);
+      connections[key] = { connected: true, username: e.data.username || '', method: 'oauth' };
+      updateSidebarDots();
+      renderConnectionsGrid();
+      toast(`${p?.name} connected as @${e.data.username||'account'} ✓`);
+      if (w) w.close();
+    }
+    if (e.data?.type === 'oauth_error') {
+      window.removeEventListener('message', handler);
+      toast('Connection failed: ' + (e.data.message||'Unknown error'), 'error');
+      if (w) w.close();
+    }
+  };
+  window.addEventListener('message', handler);
+}
+
+async function disconnectPlatform(key) {
+  const p = PLATFORMS.find(x=>x.key===key);
+  if (!confirm(`Disconnect ${p?.name}? Your data won't be deleted.`)) return;
+  if (!isDemo) {
+    try {
+      const headers = await getAuthHeaders();
+      await fetch('/api/connections', { method:'DELETE', headers, body: JSON.stringify({ platform: key }) });
+    } catch(e) { toast('Disconnect failed', 'error'); return; }
+  }
+  delete connections[key];
+  updateSidebarDots();
+  renderConnectionsGrid();
+  renderManualTokens();
+  toast(`${p?.name} disconnected`);
+}
+
+function switchToManual(key) {
+  // Scroll to and highlight the manual input for this platform
+  const row = document.getElementById('manual-row-' + key);
+  if (row) { row.scrollIntoView({ behavior:'smooth', block:'center' }); row.style.background='rgba(0,229,255,.05)'; setTimeout(()=>row.style.background='',1500); document.getElementById('token-'+key)?.focus(); }
+}
 </script>
 </body>
 </html>
