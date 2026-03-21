@@ -15,7 +15,10 @@ module.exports = async function handler(req, res) {
     }
   }
 
-  body.model = 'claude-sonnet-4-6';
+  body.model = 'claude-haiku-4-5-20251001';
+  if (!body.max_tokens) body.max_tokens = 1000;
+
+  console.log('Sending to Anthropic:', JSON.stringify({ model: body.model, max_tokens: body.max_tokens }));
 
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -28,8 +31,10 @@ module.exports = async function handler(req, res) {
       body: JSON.stringify(body),
     });
     const data = await response.json();
+    console.log('Anthropic response status:', response.status, JSON.stringify(data).slice(0, 200));
     return res.status(response.status).json(data);
   } catch (err) {
+    console.error('Fetch error:', err.message);
     return res.status(500).json({ error: err.message });
   }
 };
