@@ -1,0 +1,1270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FLŌW — Social Media Organizer</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,700;1,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#090b0f; --surface:#0f1318; --surface2:#161b23; --surface3:#1e252f;
+  --border:#232b37; --accent:#00e5ff; --accent2:#ff3cac; --accent3:#ffd600;
+  --text:#e8edf3; --muted:#5a6a7e; --muted2:#8a9ab0;
+  --ig:#e1306c; --tw:#1da1f2; --tk:#ff0050; --li:#0a66c2; --fb:#1877f2; --yt:#ff0000;
+  --success:#00c896; --warn:#ffb300; --danger:#ff4444;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;opacity:.4}
+
+/* ── AUTH SCREEN ── */
+#auth-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}
+.auth-box{width:100%;max-width:420px;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:40px;position:relative;overflow:hidden}
+.auth-box::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--accent2),var(--accent3))}
+.auth-logo{font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:.1em;color:var(--accent);margin-bottom:4px}
+.auth-tagline{font-size:12px;color:var(--muted2);letter-spacing:.2em;text-transform:uppercase;margin-bottom:32px}
+.auth-tabs{display:flex;gap:0;margin-bottom:28px;background:var(--surface2);border-radius:8px;padding:3px}
+.auth-tab{flex:1;padding:8px;text-align:center;font-size:13px;font-weight:600;cursor:pointer;border-radius:6px;color:var(--muted2);transition:all .15s;border:none;background:transparent;font-family:'DM Sans',sans-serif}
+.auth-tab.active{background:var(--surface3);color:var(--text)}
+.auth-field{margin-bottom:16px}
+.auth-label{font-size:11px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;display:block}
+.auth-input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;padding:11px 14px;outline:none;transition:border-color .15s}
+.auth-input:focus{border-color:var(--accent)}
+.auth-btn{width:100%;padding:12px;background:var(--accent);color:#000;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all .15s;margin-top:8px}
+.auth-btn:hover{background:#33eaff}
+.auth-btn:disabled{opacity:.5;cursor:not-allowed}
+.auth-err{background:rgba(255,68,68,.1);border:1px solid rgba(255,68,68,.3);border-radius:6px;padding:10px 12px;font-size:12px;color:var(--danger);margin-bottom:12px;display:none}
+.auth-divider{text-align:center;color:var(--muted);font-size:11px;margin:20px 0;position:relative}
+.auth-divider::before{content:'';position:absolute;top:50%;left:0;right:0;height:1px;background:var(--border)}
+.auth-divider span{background:var(--surface);padding:0 12px;position:relative}
+
+/* ── APP SHELL ── */
+#app-shell{display:none;height:100vh}
+.shell{display:flex;height:100vh}
+.sidebar{width:220px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;position:relative;overflow:hidden}
+.sidebar::after{content:'';position:absolute;bottom:0;left:0;right:0;height:200px;background:linear-gradient(to top,rgba(0,229,255,.04),transparent);pointer-events:none}
+.logo{padding:24px 24px 18px;border-bottom:1px solid var(--border)}
+.logo-word{font-family:'Bebas Neue',sans-serif;font-size:30px;letter-spacing:.08em;color:var(--accent);line-height:1}
+.logo-sub{font-size:9px;font-weight:500;letter-spacing:.3em;text-transform:uppercase;color:var(--muted);margin-top:3px}
+.user-chip{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--border);background:var(--surface2)}
+.user-avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#000;flex-shrink:0}
+.user-name{font-size:12px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.user-email{font-size:10px;color:var(--muted2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.logout-btn{margin-left:auto;background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:2px;flex-shrink:0}
+.logout-btn:hover{color:var(--danger)}
+.nav{padding:12px 10px;flex:1;overflow-y:auto}
+.nav-label{font-size:9px;font-weight:700;letter-spacing:.25em;text-transform:uppercase;color:var(--muted);padding:0 10px;margin:14px 0 6px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;cursor:pointer;color:var(--muted2);font-size:13px;font-weight:500;transition:all .15s;border:1px solid transparent;margin-bottom:2px}
+.nav-item:hover{background:var(--surface2);color:var(--text)}
+.nav-item.active{background:rgba(0,229,255,.08);color:var(--accent);border-color:rgba(0,229,255,.15)}
+.nav-item .icon{font-size:15px;width:18px;text-align:center}
+.platform-dots{display:flex;gap:4px;margin-left:auto}
+.dot{width:6px;height:6px;border-radius:50%}
+.main{flex:1;overflow-y:auto;display:flex;flex-direction:column}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:100}
+.topbar-title{font-family:'Bebas Neue',sans-serif;font-size:19px;letter-spacing:.05em}
+.topbar-divider{width:1px;height:18px;background:var(--border)}
+.topbar-sub{font-size:12px;color:var(--muted2)}
+.topbar-actions{margin-left:auto;display:flex;gap:8px;align-items:center}
+.content{padding:24px;flex:1}
+.tab-panel{display:none}
+.tab-panel.active{display:block;animation:fadeIn .25s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── COMMON ── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px}
+.card-title{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:.05em;margin-bottom:3px}
+.card-sub{font-size:12px;color:var(--muted2);margin-bottom:16px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.btn{padding:8px 15px;border-radius:7px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .15s;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:var(--accent);color:#000}
+.btn-primary:hover{background:#33eaff;transform:translateY(-1px)}
+.btn-ghost{background:transparent;color:var(--muted2);border:1px solid var(--border)}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
+.btn-accent2{background:var(--accent2);color:#fff}
+.btn-accent2:hover{filter:brightness(1.15);transform:translateY(-1px)}
+.btn-sm{padding:6px 11px;font-size:12px}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important}
+.input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;padding:9px 13px;outline:none;transition:border-color .15s}
+.input:focus{border-color:var(--accent)}
+.select{background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;padding:9px 13px;outline:none;cursor:pointer}
+.textarea{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;padding:13px;resize:vertical;outline:none;transition:border-color .15s;line-height:1.6}
+.textarea:focus{border-color:var(--accent)}
+.field-group{display:flex;flex-direction:column;gap:5px}
+.field-label{font-size:10px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--muted)}
+.sep{height:1px;background:var(--border);margin:18px 0}
+.score-bar{height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin:5px 0}
+.score-fill{height:100%;border-radius:3px;transition:width .6s cubic-bezier(.23,1,.32,1)}
+
+/* ── STAT CARDS ── */
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px;position:relative;overflow:hidden}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.stat-card.c1::before{background:var(--accent)} .stat-card.c2::before{background:var(--accent2)}
+.stat-card.c3::before{background:var(--accent3)} .stat-card.c4::before{background:var(--success)}
+.stat-label{font-size:10px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
+.stat-val{font-family:'Bebas Neue',sans-serif;font-size:34px;letter-spacing:.02em;line-height:1}
+.stat-val.c1{color:var(--accent)} .stat-val.c2{color:var(--accent2)}
+.stat-val.c3{color:var(--accent3)} .stat-val.c4{color:var(--success)}
+.stat-change{font-size:11px;color:var(--muted2);margin-top:4px}
+.stat-change .up{color:var(--success);font-weight:600}
+.stat-change .dn{color:var(--danger);font-weight:600}
+
+/* ── QUEUE ── */
+.queue-item{display:flex;align-items:center;gap:12px;padding:11px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;margin-bottom:7px;transition:all .12s}
+.queue-item:hover{background:var(--surface3)}
+.queue-plat{font-size:16px;width:26px;text-align:center}
+.queue-info{flex:1;min-width:0}
+.queue-caption{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500}
+.queue-meta{font-size:11px;color:var(--muted2);margin-top:2px;display:flex;gap:10px}
+.queue-status{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:3px 9px;border-radius:4px}
+.status-scheduled{background:rgba(0,229,255,.1);color:var(--accent)}
+.status-draft{background:rgba(90,106,126,.2);color:var(--muted2)}
+.status-posted{background:rgba(0,200,150,.1);color:var(--success)}
+.status-review{background:rgba(255,179,0,.1);color:var(--warn)}
+
+/* ── CALENDAR ── */
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cal-header{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);text-align:center;padding:5px 0}
+.cal-day{aspect-ratio:1;border-radius:7px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:12px;color:var(--muted2);cursor:pointer;border:1px solid transparent;transition:all .12s;gap:2px}
+.cal-day:hover{background:var(--surface2);color:var(--text)}
+.cal-day.today{border-color:var(--accent);color:var(--accent);font-weight:700}
+.cal-day.has-post{background:var(--surface2)}
+.cal-day.other-month{opacity:.3}
+.post-dots{display:flex;gap:2px}
+.pdot{width:4px;height:4px;border-radius:50%}
+
+/* ── IDEAS ── */
+.idea-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.idea-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:15px;cursor:pointer;transition:all .15s;position:relative;overflow:hidden}
+.idea-card:hover{border-color:var(--accent);transform:translateY(-2px)}
+.idea-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--accent2));opacity:0;transition:opacity .15s}
+.idea-card:hover::before{opacity:1}
+.idea-type{font-size:9px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-bottom:5px}
+.idea-title{font-size:13px;font-weight:600;margin-bottom:5px;line-height:1.4}
+.idea-desc{font-size:12px;color:var(--muted2);line-height:1.5}
+.idea-tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:9px}
+.tag{background:var(--surface3);color:var(--muted2);font-size:10px;font-weight:500;padding:3px 7px;border-radius:4px;font-family:'DM Mono',monospace}
+.hashtag{display:inline-block;background:rgba(0,229,255,.08);color:var(--accent);font-size:12px;padding:3px 8px;border-radius:4px;margin:2px;font-family:'DM Mono',monospace;cursor:pointer;border:1px solid rgba(0,229,255,.15)}
+.hashtag:hover{background:rgba(0,229,255,.15)}
+
+/* ── COMPOSER ── */
+.composer-platforms{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px}
+.plat-toggle{padding:5px 12px;border-radius:18px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:transparent;color:var(--muted2);transition:all .15s;display:flex;align-items:center;gap:4px;font-family:'DM Sans',sans-serif}
+.plat-toggle.active-ig{border-color:var(--ig);color:var(--ig);background:rgba(225,48,108,.1)}
+.plat-toggle.active-tw{border-color:var(--tw);color:var(--tw);background:rgba(29,161,242,.1)}
+.plat-toggle.active-tk{border-color:var(--tk);color:var(--tk);background:rgba(255,0,80,.1)}
+.plat-toggle.active-li{border-color:var(--li);color:var(--li);background:rgba(10,102,194,.1)}
+.plat-toggle.active-fb{border-color:var(--fb);color:var(--fb);background:rgba(24,119,242,.1)}
+.plat-toggle.active-yt{border-color:var(--yt);color:var(--yt);background:rgba(255,0,0,.1)}
+.char-counter{font-size:11px;color:var(--muted);text-align:right;margin-top:3px;font-family:'DM Mono',monospace}
+.char-counter.warn{color:var(--warn)} .char-counter.danger{color:var(--accent2)}
+
+/* ── AI ── */
+.ai-response{background:linear-gradient(135deg,rgba(0,229,255,.05),rgba(255,60,172,.03));border:1px solid rgba(0,229,255,.2);border-radius:12px;padding:15px;margin-top:11px;font-size:14px;line-height:1.7}
+.ai-badge{font-size:9px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-bottom:7px;display:flex;align-items:center;gap:6px}
+.ai-badge::before{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.loading-dots{display:inline-flex;gap:4px;align-items:center}
+.loading-dots span{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:bounce 1.2s infinite}
+.loading-dots span:nth-child(2){animation-delay:.2s}
+.loading-dots span:nth-child(3){animation-delay:.4s}
+@keyframes bounce{0%,60%,100%{transform:translateY(0);opacity:.6}30%{transform:translateY(-5px);opacity:1}}
+.proof-output{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:15px;min-height:100px;font-size:14px;line-height:1.7}
+.mark-error{background:rgba(255,60,172,.18);border-bottom:2px solid var(--accent2);cursor:help}
+.mark-suggest{background:rgba(0,229,255,.12);border-bottom:2px solid var(--accent);cursor:help}
+
+/* ── ANALYTICS ── */
+.analytics-hero{background:linear-gradient(135deg,rgba(0,229,255,.06),rgba(255,60,172,.04));border:1px solid var(--border);border-radius:14px;padding:24px;margin-bottom:18px;position:relative;overflow:hidden}
+.analytics-hero::before{content:'';position:absolute;top:-40px;right:-40px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(0,229,255,.08),transparent 70%)}
+.plat-tabs{display:flex;gap:0;background:var(--surface2);border-radius:9px;padding:3px;margin-bottom:18px;border:1px solid var(--border)}
+.plat-tab{flex:1;padding:8px;text-align:center;font-size:12px;font-weight:700;cursor:pointer;border-radius:7px;color:var(--muted2);transition:all .15s;border:none;background:transparent;font-family:'DM Sans',sans-serif;display:flex;align-items:center;justify-content:center;gap:5px}
+.plat-tab.active{color:var(--text)}
+.plat-tab.active[data-plat="ig"]{background:rgba(225,48,108,.15);color:var(--ig)}
+.plat-tab.active[data-plat="tw"]{background:rgba(29,161,242,.15);color:var(--tw)}
+.plat-tab.active[data-plat="tk"]{background:rgba(255,0,80,.15);color:var(--tk)}
+.plat-tab.active[data-plat="li"]{background:rgba(10,102,194,.15);color:var(--li)}
+.plat-tab.active[data-plat="yt"]{background:rgba(255,0,0,.15);color:var(--yt)}
+
+/* CHART */
+.chart-wrap{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:16px}
+.chart-title{font-size:11px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;display:flex;justify-content:space-between;align-items:center}
+.chart-svg-wrap{width:100%;overflow:hidden}
+svg.chart{width:100%;height:180px;display:block}
+
+/* SOCIALBLADE TABLE */
+.sb-table{width:100%;border-collapse:separate;border-spacing:0;font-size:12px}
+.sb-table th{font-size:9px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);padding:8px 12px;text-align:left;border-bottom:1px solid var(--border)}
+.sb-table td{padding:7px 12px;border-bottom:1px solid rgba(35,43,55,.5);color:var(--muted2);font-family:'DM Mono',monospace;font-size:11px}
+.sb-table tr:hover td{background:var(--surface2)}
+.sb-table td.pos{color:var(--success)} .sb-table td.neg{color:var(--danger)} .sb-table td.neu{color:var(--muted2)}
+.grade{font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;font-family:'DM Sans',sans-serif}
+.grade-A{background:rgba(0,200,150,.15);color:var(--success)}
+.grade-B{background:rgba(0,229,255,.1);color:var(--accent)}
+.grade-C{background:rgba(255,179,0,.1);color:var(--warn)}
+.grade-D{background:rgba(255,68,68,.1);color:var(--danger)}
+
+/* DEMOGRAPHICS */
+.demo-bar-wrap{margin-bottom:10px}
+.demo-bar-label{display:flex;justify-content:space-between;font-size:11px;color:var(--muted2);margin-bottom:4px}
+.demo-bar{height:8px;background:var(--border);border-radius:4px;overflow:hidden}
+.demo-fill{height:100%;border-radius:4px;transition:width .8s cubic-bezier(.23,1,.32,1)}
+
+/* CONNECT BANNER */
+.connect-banner{background:rgba(255,215,0,.05);border:1px dashed rgba(255,215,0,.25);border-radius:10px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:12px;font-size:12px;color:var(--muted2)}
+.connect-banner strong{color:var(--accent3)}
+
+/* PREVIEW */
+.platform-preview{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:13px}
+.preview-header{display:flex;align-items:center;gap:8px;margin-bottom:9px}
+.preview-avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));flex-shrink:0}
+.preview-name{font-size:12px;font-weight:600}
+.preview-handle{font-size:10px;color:var(--muted2)}
+
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════
+     AUTH SCREEN
+══════════════════════════════════════════ -->
+<div id="auth-screen">
+  <div class="auth-box">
+    <div class="auth-logo">FLŌW</div>
+    <div class="auth-tagline">Social Media Command Center</div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="showAuthTab('login')">Sign In</button>
+      <button class="auth-tab" onclick="showAuthTab('register')">Create Account</button>
+    </div>
+    <div id="auth-err" class="auth-err"></div>
+
+    <!-- LOGIN -->
+    <div id="login-form">
+      <div class="auth-field"><label class="auth-label">Email</label><input class="auth-input" id="login-email" type="email" placeholder="you@example.com"></div>
+      <div class="auth-field"><label class="auth-label">Password</label><input class="auth-input" id="login-pass" type="password" placeholder="••••••••"></div>
+      <button class="auth-btn" id="login-btn" onclick="doLogin()">Sign In →</button>
+    </div>
+
+    <!-- REGISTER -->
+    <div id="register-form" style="display:none">
+      <div class="auth-field"><label class="auth-label">Full Name</label><input class="auth-input" id="reg-name" type="text" placeholder="Alex Johnson"></div>
+      <div class="auth-field"><label class="auth-label">Email</label><input class="auth-input" id="reg-email" type="email" placeholder="you@example.com"></div>
+      <div class="auth-field"><label class="auth-label">Password</label><input class="auth-input" id="reg-pass" type="password" placeholder="Min 8 characters"></div>
+      <button class="auth-btn" id="reg-btn" onclick="doRegister()">Create Account →</button>
+    </div>
+
+    <div class="auth-divider"><span>Demo mode available</span></div>
+    <button class="auth-btn" style="background:var(--surface3);color:var(--text);border:1px solid var(--border)" onclick="demoLogin()">👀 Enter Demo Mode</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     APP SHELL
+══════════════════════════════════════════ -->
+<div id="app-shell">
+<div class="shell">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="logo"><div class="logo-word">FLŌW</div><div class="logo-sub">Social Media Organizer</div></div>
+  <div class="user-chip">
+    <div class="user-avatar" id="user-avatar">?</div>
+    <div style="min-width:0"><div class="user-name" id="user-name">Loading...</div><div class="user-email" id="user-email"></div></div>
+    <button class="logout-btn" onclick="doLogout()" title="Sign out">⏻</button>
+  </div>
+  <nav class="nav">
+    <div class="nav-label">Workspace</div>
+    <div class="nav-item active" onclick="switchTab('dashboard',this)"><span class="icon">⬡</span> Dashboard</div>
+    <div class="nav-item" onclick="switchTab('composer',this)"><span class="icon">✦</span> Composer</div>
+    <div class="nav-item" onclick="switchTab('queue',this)"><span class="icon">◫</span> Post Queue</div>
+    <div class="nav-item" onclick="switchTab('calendar',this)"><span class="icon">◈</span> Calendar</div>
+    <div class="nav-label">AI Tools</div>
+    <div class="nav-item" onclick="switchTab('ideas',this)"><span class="icon">⟡</span> Idea Engine</div>
+    <div class="nav-item" onclick="switchTab('proofread',this)"><span class="icon">⊕</span> Proofread</div>
+    <div class="nav-label">Analytics</div>
+    <div class="nav-item" onclick="switchTab('analytics',this)"><span class="icon">◎</span> Analytics</div>
+    <div class="nav-label">Platforms</div>
+    <div class="nav-item"><span class="icon">📸</span> Instagram<div class="platform-dots"><div class="dot" style="background:var(--success)"></div></div></div>
+    <div class="nav-item"><span class="icon">𝕏</span> X / Twitter<div class="platform-dots"><div class="dot" style="background:var(--success)"></div></div></div>
+    <div class="nav-item"><span class="icon">▶</span> TikTok<div class="platform-dots"><div class="dot" style="background:var(--warn)"></div></div></div>
+    <div class="nav-item"><span class="icon">in</span> LinkedIn<div class="platform-dots"><div class="dot" style="background:var(--muted)"></div></div></div>
+    <div class="nav-item"><span class="icon">▷</span> YouTube<div class="platform-dots"><div class="dot" style="background:var(--success)"></div></div></div>
+  </nav>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title" id="topbar-title">Dashboard</div>
+    <div class="topbar-divider"></div>
+    <div class="topbar-sub" id="topbar-sub">March 2026 · 5 platforms</div>
+    <div class="topbar-actions">
+      <button class="btn btn-ghost btn-sm" onclick="switchTab('composer',document.querySelectorAll('.nav-item')[1])">+ Draft</button>
+      <button class="btn btn-primary btn-sm" onclick="switchTab('queue',document.querySelectorAll('.nav-item')[2])">⚡ Schedule</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+  <!-- ────────────────── DASHBOARD ────────────────── -->
+  <div id="tab-dashboard" class="tab-panel active">
+    <div class="grid-4" style="margin-bottom:18px" id="dash-stats">
+      <div class="stat-card c1"><div class="stat-label">Scheduled</div><div class="stat-val c1" id="stat-scheduled">—</div><div class="stat-change">This week</div></div>
+      <div class="stat-card c2"><div class="stat-label">Drafts</div><div class="stat-val c2" id="stat-drafts">—</div><div class="stat-change">Pending review</div></div>
+      <div class="stat-card c3"><div class="stat-label">Total Posts</div><div class="stat-val c3" id="stat-total">—</div><div class="stat-change">All time</div></div>
+      <div class="stat-card c4"><div class="stat-label">Posted</div><div class="stat-val c4" id="stat-posted">—</div><div class="stat-change">Published</div></div>
+    </div>
+    <div class="grid-2" style="margin-bottom:18px">
+      <div class="card">
+        <div class="card-title">Upcoming Posts</div><div class="card-sub">Next scheduled</div>
+        <div id="dash-upcoming"><div style="text-align:center;padding:24px;color:var(--muted2);font-size:13px">Loading...</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Platform Health</div><div class="card-sub">Posting frequency</div>
+        <div style="display:flex;flex-direction:column;gap:13px">
+          <div><div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="font-size:13px">📸 Instagram</span><span style="font-size:11px;color:var(--success);font-family:'DM Mono'">5× / wk</span></div><div class="score-bar"><div class="score-fill" style="width:90%;background:var(--ig)"></div></div></div>
+          <div><div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="font-size:13px">𝕏 Twitter</span><span style="font-size:11px;color:var(--success);font-family:'DM Mono'">7× / wk</span></div><div class="score-bar"><div class="score-fill" style="width:100%;background:var(--tw)"></div></div></div>
+          <div><div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="font-size:13px">▶ TikTok</span><span style="font-size:11px;color:var(--warn);font-family:'DM Mono'">2× / wk</span></div><div class="score-bar"><div class="score-fill" style="width:40%;background:var(--tk)"></div></div></div>
+          <div><div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="font-size:13px">in LinkedIn</span><span style="font-size:11px;color:var(--muted2);font-family:'DM Mono'">0× / wk</span></div><div class="score-bar"><div class="score-fill" style="width:10%;background:var(--li)"></div></div></div>
+          <div><div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="font-size:13px">▷ YouTube</span><span style="font-size:11px;color:var(--warn);font-family:'DM Mono'">1× / wk</span></div><div class="score-bar"><div class="score-fill" style="width:30%;background:var(--yt)"></div></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Quick Actions</div><div class="card-sub">Common workflows</div>
+      <div class="grid-4">
+        <button class="btn btn-ghost" style="flex-direction:column;height:78px;gap:7px;font-size:12px" onclick="switchTab('ideas',document.querySelectorAll('.nav-item')[5])"><span style="font-size:22px">⟡</span>Generate Ideas</button>
+        <button class="btn btn-ghost" style="flex-direction:column;height:78px;gap:7px;font-size:12px" onclick="switchTab('composer',document.querySelectorAll('.nav-item')[1])"><span style="font-size:22px">✦</span>New Post</button>
+        <button class="btn btn-ghost" style="flex-direction:column;height:78px;gap:7px;font-size:12px" onclick="switchTab('analytics',document.querySelectorAll('.nav-item')[7])"><span style="font-size:22px">◎</span>Analytics</button>
+        <button class="btn btn-ghost" style="flex-direction:column;height:78px;gap:7px;font-size:12px" onclick="switchTab('proofread',document.querySelectorAll('.nav-item')[6])"><span style="font-size:22px">⊕</span>Proofread</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ────────────────── COMPOSER ────────────────── -->
+  <div id="tab-composer" class="tab-panel">
+    <div class="grid-2" style="gap:18px">
+      <div>
+        <div class="card" style="margin-bottom:14px">
+          <div class="card-title">Post Composer</div><div class="card-sub">Write once, publish everywhere</div>
+          <div class="field-group" style="margin-bottom:13px"><div class="field-label">Publish To</div>
+            <div class="composer-platforms">
+              <button class="plat-toggle" id="tog-ig" onclick="togglePlat('ig')">📸 Instagram</button>
+              <button class="plat-toggle" id="tog-tw" onclick="togglePlat('tw')">𝕏 Twitter</button>
+              <button class="plat-toggle" id="tog-tk" onclick="togglePlat('tk')">▶ TikTok</button>
+              <button class="plat-toggle" id="tog-li" onclick="togglePlat('li')">in LinkedIn</button>
+              <button class="plat-toggle" id="tog-fb" onclick="togglePlat('fb')">f Facebook</button>
+              <button class="plat-toggle" id="tog-yt" onclick="togglePlat('yt')">▷ YouTube</button>
+            </div>
+          </div>
+          <div class="field-group" style="margin-bottom:11px"><div class="field-label">Caption</div>
+            <textarea class="textarea" id="composer-caption" rows="5" placeholder="What's the story?" oninput="updateCharCount()"></textarea>
+            <div class="char-counter" id="char-counter">0 / 2200</div>
+          </div>
+          <div class="field-group" style="margin-bottom:13px"><div class="field-label">Hashtags</div>
+            <input class="input" id="hashtag-input" placeholder="Type tag + Enter to add..." style="margin-bottom:7px">
+            <div id="hashtag-display"></div>
+          </div>
+          <div class="sep"></div>
+          <div style="display:flex;gap:10px;margin-bottom:14px">
+            <div class="field-group" style="flex:1"><div class="field-label">Date</div><input class="input" type="date" id="post-date" value="2026-03-22"></div>
+            <div class="field-group" style="flex:1"><div class="field-label">Time</div><input class="input" type="time" id="post-time" value="14:00"></div>
+            <div class="field-group" style="flex:1"><div class="field-label">Timezone</div><select class="select" style="width:100%"><option>ET (New York)</option><option>PT (Los Angeles)</option><option>UTC</option></select></div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-ghost" onclick="saveDraft()">Save Draft</button>
+            <button class="btn btn-ghost" id="ai-enhance-btn" onclick="aiEnhanceCaption()">✦ AI Enhance</button>
+            <button class="btn btn-primary" style="margin-left:auto" onclick="schedulePost()">⚡ Schedule</button>
+          </div>
+          <div id="enhance-result"></div>
+        </div>
+      </div>
+      <div>
+        <div class="card" style="margin-bottom:14px">
+          <div class="card-title">Live Preview</div><div class="card-sub">How it will look</div>
+          <div class="platform-preview">
+            <div class="preview-header"><div class="preview-avatar"></div><div><div class="preview-name">@yourbrand</div><div class="preview-handle">Just now · 📸</div></div></div>
+            <div id="preview-text" style="color:var(--muted2);font-style:italic;font-size:13px">Your caption will appear here...</div>
+            <div style="margin-top:9px;background:var(--surface3);border-radius:7px;height:140px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px">📷 Media placeholder</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">AI Caption Generator</div><div class="card-sub">Describe → get a caption</div>
+          <textarea class="textarea" id="caption-brief" rows="3" placeholder="e.g. Morning coffee aesthetic, cozy café, promoting our new blend..."></textarea>
+          <div style="display:flex;gap:8px;margin-top:9px;flex-wrap:wrap">
+            <select class="select" id="caption-tone" style="flex:1"><option>Casual & Friendly</option><option>Professional</option><option>Witty & Humorous</option><option>Inspirational</option><option>Luxury & Aspirational</option><option>Bold & Direct</option></select>
+            <button class="btn btn-accent2 btn-sm" id="gen-caption-btn" onclick="generateCaption()">✦ Generate</button>
+          </div>
+          <div id="caption-result"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ────────────────── QUEUE ────────────────── -->
+  <div id="tab-queue" class="tab-panel">
+    <div style="display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;align-items:center">
+      <button class="btn btn-primary btn-sm" onclick="filterQueue('all')" id="qf-all">All</button>
+      <button class="btn btn-ghost btn-sm" onclick="filterQueue('scheduled')" id="qf-scheduled">⚡ Scheduled</button>
+      <button class="btn btn-ghost btn-sm" onclick="filterQueue('draft')" id="qf-draft">◫ Drafts</button>
+      <button class="btn btn-ghost btn-sm" onclick="filterQueue('review')" id="qf-review">⊕ Review</button>
+      <button class="btn btn-ghost btn-sm" onclick="filterQueue('posted')" id="qf-posted">✓ Posted</button>
+      <div style="margin-left:auto"><select class="select" style="font-size:12px"><option>All Platforms</option><option>Instagram</option><option>Twitter</option><option>TikTok</option><option>LinkedIn</option><option>YouTube</option></select></div>
+    </div>
+    <div id="queue-list"></div>
+  </div>
+
+  <!-- ────────────────── CALENDAR ────────────────── -->
+  <div id="tab-calendar" class="tab-panel">
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+        <div class="card-title">March 2026</div>
+        <div style="display:flex;gap:7px"><button class="btn btn-ghost btn-sm" onclick="calPrev()">← Prev</button><button class="btn btn-ghost btn-sm" onclick="calNext()">Next →</button></div>
+      </div>
+      <div class="cal-grid" style="margin-bottom:7px">
+        <div class="cal-header">Sun</div><div class="cal-header">Mon</div><div class="cal-header">Tue</div><div class="cal-header">Wed</div><div class="cal-header">Thu</div><div class="cal-header">Fri</div><div class="cal-header">Sat</div>
+      </div>
+      <div class="cal-grid" id="calendar-grid"></div>
+    </div>
+      <div style="display:flex;gap:12px;margin-top:14px;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted2)"><div class="dot" style="background:var(--ig);width:8px;height:8px"></div>Instagram</div>
+      <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted2)"><div class="dot" style="background:var(--tw);width:8px;height:8px"></div>Twitter</div>
+      <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted2)"><div class="dot" style="background:var(--tk);width:8px;height:8px"></div>TikTok</div>
+      <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted2)"><div class="dot" style="background:var(--li);width:8px;height:8px"></div>LinkedIn</div>
+      <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted2)"><div class="dot" style="background:var(--yt);width:8px;height:8px"></div>YouTube</div>
+    </div>
+  </div>
+
+  <!-- ────────────────── IDEAS ────────────────── -->
+  <div id="tab-ideas" class="tab-panel">
+    <div class="card" style="margin-bottom:15px">
+      <div class="card-title">Content Idea Engine</div><div class="card-sub">AI-powered ideas tailored to your brand</div>
+      <div class="grid-2" style="gap:11px;margin-bottom:12px">
+        <div class="field-group"><div class="field-label">Your Niche</div><input class="input" id="niche-input" placeholder="e.g. Wellness brand, SaaS startup..."></div>
+        <div class="field-group"><div class="field-label">Platform</div><select class="select" id="idea-platform" style="width:100%"><option>All Platforms</option><option>Instagram</option><option>X / Twitter</option><option>TikTok</option><option>LinkedIn</option><option>YouTube</option></select></div>
+      </div>
+      <div class="grid-2" style="gap:11px;margin-bottom:12px">
+        <div class="field-group"><div class="field-label">Goal</div><select class="select" id="idea-goal" style="width:100%"><option>Brand Awareness</option><option>Drive Engagement</option><option>Product Promotion</option><option>Educate Audience</option><option>Community Building</option></select></div>
+        <div class="field-group"><div class="field-label">Style</div><select class="select" id="idea-style" style="width:100%"><option>Mix of Everything</option><option>Educational</option><option>Behind the Scenes</option><option>Trending / Viral</option><option>Story-driven</option></select></div>
+      </div>
+      <button class="btn btn-primary" id="gen-ideas-btn" onclick="generateIdeas()" style="width:100%">⟡ Generate Content Ideas</button>
+    </div>
+    <div id="ideas-result"></div>
+  </div>
+
+  <!-- ────────────────── PROOFREAD ────────────────── -->
+  <div id="tab-proofread" class="tab-panel">
+    <div class="grid-2" style="gap:18px">
+      <div class="card">
+        <div class="card-title">Content Input</div><div class="card-sub">Paste any caption or post copy</div>
+        <textarea class="textarea" id="proof-input" rows="8" placeholder="Paste your caption, tweet, or LinkedIn post here..."></textarea>
+        <div style="display:flex;gap:9px;margin-top:11px">
+          <select class="select" id="proof-platform" style="flex:1"><option>Instagram Caption</option><option>Tweet / X Post</option><option>LinkedIn Article</option><option>TikTok Caption</option><option>YouTube Description</option></select>
+          <button class="btn btn-primary" id="proof-btn" onclick="proofreadContent()">⊕ Analyze</button>
+        </div>
+        <div id="proof-result"></div>
+      </div>
+      <div>
+        <div class="card" style="margin-bottom:14px">
+          <div class="card-title">Analysis Scores</div><div class="card-sub">Content quality breakdown</div>
+          <div id="score-display"><div style="text-align:center;padding:28px 0;color:var(--muted2);font-size:13px">Run analysis to see scores</div></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Markup Legend</div>
+          <div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:10px">
+            <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted2)"><div style="width:10px;height:4px;border-radius:2px;background:var(--accent2)"></div>Error</div>
+            <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted2)"><div style="width:10px;height:4px;border-radius:2px;background:var(--accent)"></div>Suggestion</div>
+            <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted2)"><div style="width:10px;height:4px;border-radius:2px;background:var(--success)"></div>Strong</div>
+          </div>
+          <div style="font-size:12px;color:var(--muted2);line-height:1.6">Hover highlighted text to see AI suggestions.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ────────────────── ANALYTICS ────────────────── -->
+  <div id="tab-analytics" class="tab-panel">
+
+    <div class="connect-banner">
+      <span style="font-size:18px">⚡</span>
+      <div><strong>Demo Data Active</strong> — This dashboard shows realistic sample data. To see your real stats, connect your accounts via the platform APIs (see README for setup instructions).</div>
+    </div>
+    <div id="best-time-insight" style="display:none;background:rgba(255,215,0,.05);border:1px solid rgba(255,215,0,.2);border-radius:9px;padding:10px 16px;margin-bottom:14px;font-size:12px;color:var(--muted2);gap:8px;align-items:center"></div>
+
+    <!-- Platform Tabs -->
+    <div class="plat-tabs">
+      <button class="plat-tab active" data-plat="ig" onclick="switchPlatAnalytics('ig',this)">📸 Instagram</button>
+      <button class="plat-tab" data-plat="tw" onclick="switchPlatAnalytics('tw',this)">𝕏 Twitter</button>
+      <button class="plat-tab" data-plat="tk" onclick="switchPlatAnalytics('tk',this)">▶ TikTok</button>
+      <button class="plat-tab" data-plat="li" onclick="switchPlatAnalytics('li',this)">in LinkedIn</button>
+      <button class="plat-tab" data-plat="yt" onclick="switchPlatAnalytics('yt',this)">▷ YouTube</button>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="grid-4" style="margin-bottom:16px" id="analytics-stats"></div>
+
+    <div class="grid-2" style="gap:16px;margin-bottom:16px">
+      <!-- Growth Chart -->
+      <div class="chart-wrap" style="grid-column:1/-1">
+        <div class="chart-title">
+          <span>30-Day Follower Growth</span>
+          <span id="analytics-range" style="color:var(--muted2);font-size:10px;font-weight:400"></span>
+        </div>
+        <div class="chart-svg-wrap" id="growth-chart"></div>
+      </div>
+    </div>
+
+    <div class="grid-2" style="gap:16px;margin-bottom:16px">
+      <!-- Engagement Chart -->
+      <div class="chart-wrap">
+        <div class="chart-title"><span>Engagement Rate (30d)</span></div>
+        <div class="chart-svg-wrap" id="engagement-chart"></div>
+      </div>
+      <!-- Demographics -->
+      <div class="card">
+        <div class="card-title">Audience Insights</div><div class="card-sub">Demographics breakdown</div>
+        <div id="demographics-panel"></div>
+      </div>
+    </div>
+
+    <!-- SocialBlade-style table -->
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-title">Daily Tracking</div><div class="card-sub" id="sb-subtitle">Subscriber changes & grades — SocialBlade style</div>
+      <div style="overflow-x:auto">
+        <table class="sb-table" id="sb-table">
+          <thead><tr id="sb-thead">
+            <th>Date</th><th id="sb-col-followers">Followers</th><th>Daily +/-</th><th>Weekly +/-</th><th id="sb-col-eng">Engagement</th><th>Grade</th>
+          </tr></thead>
+          <tbody id="sb-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Top Posts -->
+    <div class="card">
+      <div class="card-title">Top Performing Posts</div><div class="card-sub">Your best content this month</div>
+      <div class="grid-3" id="top-posts-grid"></div>
+    </div>
+
+  </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+</div><!-- /shell -->
+</div><!-- /app-shell -->
+
+<script>
+// ═══════════════════════════════════════════════
+//  SUPABASE CONFIG
+//  Replace these with your Supabase project values
+// ═══════════════════════════════════════════════
+const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+
+let sb = null;
+let currentUser = null;
+let isDemo = false;
+
+// Init Supabase only if configured
+if (SUPABASE_URL !== 'YOUR_SUPABASE_URL') {
+  const { createClient } = supabase;
+  sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+}
+
+// ── AUTH FLOW ──────────────────────────────────
+async function initAuth() {
+  if (!sb) return; // demo mode only if no supabase
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) loadApp(session.user);
+}
+initAuth();
+
+function showAuthTab(tab) {
+  document.getElementById('login-form').style.display = tab==='login'?'block':'none';
+  document.getElementById('register-form').style.display = tab==='register'?'block':'none';
+  document.querySelectorAll('.auth-tab').forEach((t,i)=>t.classList.toggle('active',(i===0&&tab==='login')||(i===1&&tab==='register')));
+  hideAuthErr();
+}
+function showAuthErr(msg) { const e=document.getElementById('auth-err'); e.textContent=msg; e.style.display='block'; }
+function hideAuthErr() { document.getElementById('auth-err').style.display='none'; }
+
+async function doLogin() {
+  if (!sb) { showAuthErr('Supabase not configured. Use Demo Mode.'); return; }
+  const email=document.getElementById('login-email').value.trim();
+  const pass=document.getElementById('login-pass').value;
+  if(!email||!pass){showAuthErr('Please fill in all fields.');return;}
+  const btn=document.getElementById('login-btn');
+  btn.disabled=true; btn.textContent='Signing in...';
+  const {data,error}=await sb.auth.signInWithPassword({email,password:pass});
+  btn.disabled=false; btn.textContent='Sign In →';
+  if(error){showAuthErr(error.message);return;}
+  loadApp(data.user);
+}
+
+async function doRegister() {
+  if (!sb) { showAuthErr('Supabase not configured. Use Demo Mode.'); return; }
+  const name=document.getElementById('reg-name').value.trim();
+  const email=document.getElementById('reg-email').value.trim();
+  const pass=document.getElementById('reg-pass').value;
+  if(!name||!email||!pass){showAuthErr('Please fill in all fields.');return;}
+  if(pass.length<8){showAuthErr('Password must be at least 8 characters.');return;}
+  const btn=document.getElementById('reg-btn');
+  btn.disabled=true; btn.textContent='Creating account...';
+  const {data,error}=await sb.auth.signUp({email,password:pass,options:{data:{full_name:name}}});
+  btn.disabled=false; btn.textContent='Create Account →';
+  if(error){showAuthErr(error.message);return;}
+  showAuthErr('Check your email to confirm your account, then sign in.');
+}
+
+function demoLogin() {
+  isDemo = true;
+  cachedPosts = [
+    {id:'d1',plat:'📸',platKey:'ig',caption:'Behind the scenes from our studio shoot — raw, unfiltered ✨',hashtags:['#bts','#creative'],date:'Mar 21',time:'2:00 PM',status:'scheduled'},
+    {id:'d2',plat:'𝕏',platKey:'tw',caption:'Hot take: consistency beats virality every single time. Thread 🧵',hashtags:[],date:'Mar 21',time:'5:00 PM',status:'scheduled'},
+    {id:'d3',plat:'in',platKey:'li',caption:'3 lessons from Q1 that every creator should know',hashtags:['#linkedin'],date:'Mar 22',time:'9:00 AM',status:'review'},
+    {id:'d4',plat:'📸',platKey:'ig',caption:'Product drop coming soon. You are not ready. 🔥',hashtags:['#drop'],date:'Mar 23',time:'12:00 PM',status:'draft'},
+    {id:'d5',plat:'▶',platKey:'tk',caption:'POV: you finally cracked the algorithm ✨ #fyp #creator',hashtags:['#fyp'],date:'Mar 20',time:'11:00 AM',status:'posted'},
+    {id:'d6',plat:'f',platKey:'fb',caption:'Sunday reset routine that changed my life 🌿',hashtags:['#wellness'],date:'Mar 19',time:'10:00 AM',status:'posted'},
+  ];
+  loadApp({ email: 'demo@flowhq.app', user_metadata: { full_name: 'Demo User' } });
+}
+
+async function doLogout() {
+  if(sb && !isDemo) await sb.auth.signOut();
+  isDemo=false; currentUser=null;
+  document.getElementById('app-shell').style.display='none';
+  document.getElementById('auth-screen').style.display='flex';
+}
+
+function loadApp(user) {
+  currentUser = user;
+  document.getElementById('auth-screen').style.display='none';
+  document.getElementById('app-shell').style.display='block';
+  const name = user.user_metadata?.full_name || user.email.split('@')[0];
+  const initials = name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+  document.getElementById('user-avatar').textContent=initials;
+  document.getElementById('user-name').textContent=name;
+  document.getElementById('user-email').textContent=user.email;
+  renderHashtags();
+  loadPostsFromAPI();
+  renderCalendar();
+  loadAnalytics();
+}
+
+// ── TAB SWITCHING ──────────────────────────────
+function switchTab(tab, el) {
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  if(el) el.classList.add('active');
+  const titles={dashboard:'Dashboard',composer:'Post Composer',queue:'Post Queue',calendar:'Content Calendar',ideas:'Idea Engine',proofread:'Proofread & Markup',analytics:'Analytics'};
+  document.getElementById('topbar-title').textContent=titles[tab]||tab;
+  if(tab==='queue') loadPostsFromAPI();
+  if(tab==='calendar') renderCalendar();
+  if(tab==='analytics') { analyticsData=null; loadAnalytics(); }
+}
+
+// ── PLATFORM TOGGLE ────────────────────────────
+const activePlats = new Set();
+function togglePlat(key) {
+  const btn=document.getElementById('tog-'+key);
+  if(activePlats.has(key)){activePlats.delete(key);btn.className='plat-toggle';}
+  else{activePlats.add(key);btn.className='plat-toggle active-'+key;}
+}
+
+// ── CHAR COUNTER ───────────────────────────────
+function updateCharCount() {
+  const val=document.getElementById('composer-caption').value;
+  const counter=document.getElementById('char-counter');
+  counter.textContent=val.length+' / 2200';
+  counter.className='char-counter'+(val.length>1800?' warn':'')+(val.length>2100?' danger':'');
+  const pv=document.getElementById('preview-text');
+  pv.textContent=val||'Your caption will appear here...';
+  pv.style.fontStyle=val?'normal':'italic';
+  pv.style.color=val?'var(--text)':'var(--muted2)';
+}
+
+// ── HASHTAGS ───────────────────────────────────
+const hashtags=['#contentcreator','#socialmedia','#marketing'];
+function renderHashtags(){
+  document.getElementById('hashtag-display').innerHTML=hashtags.map(h=>`<span class="hashtag" onclick="removeHashtag('${h}')">${h} ×</span>`).join('');
+}
+function removeHashtag(h){hashtags.splice(hashtags.indexOf(h),1);renderHashtags();}
+document.addEventListener('DOMContentLoaded',()=>{
+  const hi=document.getElementById('hashtag-input');
+  if(hi)hi.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();const v=e.target.value.trim().replace(/^#*/,'');if(v){hashtags.push('#'+v);renderHashtags();e.target.value='';}}} );
+});
+
+// ── API CALL (proxy) ───────────────────────────
+async function callClaude(prompt, system) {
+  const res = await fetch('/api/claude', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      model:'claude-sonnet-4-20250514',
+      max_tokens:1000,
+      system: system||'You are a professional social media strategist and copywriter.',
+      messages:[{role:'user',content:prompt}]
+    })
+  });
+  const data=await res.json();
+  return data.content?.[0]?.text||'';
+}
+function showLoading(el){el.innerHTML=`<div class="ai-response"><div class="ai-badge">AI Processing</div><div class="loading-dots"><span></span><span></span><span></span></div></div>`;}
+function escapeHtml(s=''){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// ── CAPTION GENERATOR ──────────────────────────
+async function generateCaption(){
+  const brief=document.getElementById('caption-brief').value.trim();
+  if(!brief){alert('Describe your post first.');return;}
+  const tone=document.getElementById('caption-tone').value;
+  const el=document.getElementById('caption-result');
+  const btn=document.getElementById('gen-caption-btn');
+  btn.disabled=true;btn.textContent='...';
+  showLoading(el);
+  try{
+    const text=await callClaude(`Write a compelling Instagram caption for: "${brief}". Tone: ${tone}. Include 1-2 emojis naturally. Under 150 words. Suggest 8 hashtags at the end.`);
+    el.innerHTML=`<div class="ai-response"><div class="ai-badge">Generated Caption</div><div style="white-space:pre-wrap;margin-bottom:10px">${escapeHtml(text)}</div><button class="btn btn-sm btn-ghost" onclick="useCaption(this)">↑ Use this caption</button></div>`;
+  }catch(e){el.innerHTML=`<div class="ai-response" style="border-color:var(--danger);color:var(--danger)">Connection error — check /api/claude is deployed.</div>`;}
+  btn.disabled=false;btn.textContent='✦ Generate';
+}
+function useCaption(btn){document.getElementById('composer-caption').value=btn.parentElement.querySelector('div[style]').textContent;updateCharCount();}
+
+// ── AI ENHANCE ─────────────────────────────────
+async function aiEnhanceCaption(){
+  const caption=document.getElementById('composer-caption').value.trim();
+  if(!caption){alert('Write a caption first.');return;}
+  const el=document.getElementById('enhance-result');
+  const btn=document.getElementById('ai-enhance-btn');
+  btn.disabled=true;btn.textContent='...';
+  showLoading(el);
+  try{
+    const text=await callClaude(`Enhance this caption to be more engaging and hook-forward. Return ONLY the enhanced version:\n"${caption}"`);
+    el.innerHTML=`<div class="ai-response"><div class="ai-badge">Enhanced Version</div><div style="white-space:pre-wrap;margin-bottom:10px">${escapeHtml(text)}</div><button class="btn btn-sm btn-primary" onclick="applyEnhanced(this)">Apply</button></div>`;
+  }catch(e){el.innerHTML='';}
+  btn.disabled=false;btn.textContent='✦ AI Enhance';
+}
+function applyEnhanced(btn){document.getElementById('composer-caption').value=btn.parentElement.querySelector('div[style]').textContent;updateCharCount();btn.parentElement.parentElement.innerHTML='';}
+
+// ── IDEAS ──────────────────────────────────────
+async function generateIdeas(){
+  const niche=document.getElementById('niche-input').value.trim();
+  const platform=document.getElementById('idea-platform').value;
+  const goal=document.getElementById('idea-goal').value;
+  const style=document.getElementById('idea-style').value;
+  if(!niche){toast('Enter your niche first','error');return;}
+  const el=document.getElementById('ideas-result');
+  const btn=document.getElementById('gen-ideas-btn');
+  btn.disabled=true;btn.textContent='Generating...';
+  showLoading(el);
+  try{
+    const raw=await callClaude(
+      `Generate 6 diverse content ideas for a ${niche} on ${platform}. Goal: ${goal}. Style: ${style}.\nReturn ONLY a JSON array of 6 objects: [{type,title,description,tags:[3 strings]}]. No markdown.`,
+      'You are a creative social media strategist. Return only valid JSON arrays.'
+    );
+    const ideas=JSON.parse(raw.replace(/```json|```/g,'').trim());
+    el.innerHTML=`<div class="idea-grid" id="idea-grid-results">${ideas.map((idea,i)=>`
+      <div class="idea-card" id="icard-${i}">
+        <div class="idea-type">${idea.type}</div>
+        <div class="idea-title">${escapeHtml(idea.title)}</div>
+        <div class="idea-desc">${escapeHtml(idea.description)}</div>
+        <div class="idea-tags">${(idea.tags||[]).map(t=>`<span class="tag">${escapeHtml(t)}</span>`).join('')}</div>
+        <div style="display:flex;gap:7px;margin-top:11px">
+          <button class="btn btn-ghost btn-sm" style="flex:1;font-size:11px" onclick="useIdea('${escapeHtml(idea.title).replace(/'/g,"\\'")}','${escapeHtml(idea.description).replace(/'/g,"\\'")}')">↗ Use in Composer</button>
+          <button class="btn btn-ghost btn-sm" style="font-size:11px" id="save-idea-${i}" onclick="saveIdea(${i},'${escapeHtml(idea.type)}','${escapeHtml(idea.title).replace(/'/g,"\\'")}','${escapeHtml(idea.description).replace(/'/g,"\\'")}','${(idea.tags||[]).join(',')}')">⊕ Save</button>
+        </div>
+      </div>`).join('')}</div>
+      <div style="text-align:center;margin-top:11px;font-size:12px;color:var(--muted2)">Click <strong style="color:var(--text)">Use in Composer</strong> to draft it or <strong style="color:var(--text)">Save</strong> to keep it.</div>`;
+  }catch(e){el.innerHTML=`<div class="ai-response" style="border-color:var(--danger);color:var(--danger)">Could not parse ideas. Try again.</div>`;}
+  btn.disabled=false;btn.textContent='⟡ Generate Content Ideas';
+}
+
+async function saveIdea(i, type, title, description, tagsStr) {
+  const btn = document.getElementById('save-idea-' + i);
+  if (!btn) return;
+  btn.disabled = true; btn.textContent = '...';
+  const tags = tagsStr ? tagsStr.split(',').filter(Boolean) : [];
+  if (isDemo) { toast('Idea saved (demo — not persisted)'); btn.textContent = '✓ Saved'; return; }
+  try {
+    const headers = await getAuthHeaders();
+    const res = await fetch('/api/ideas', { method:'POST', headers, body: JSON.stringify({ type, title, description, tags }) });
+    if (!res.ok) throw new Error(await res.text());
+    btn.textContent = '✓ Saved';
+    btn.style.color = 'var(--success)';
+    toast('Idea saved to your library ✓');
+  } catch(e) {
+    btn.disabled = false; btn.textContent = '⊕ Save';
+    toast('Save failed: ' + e.message, 'error');
+  }
+}
+
+function useIdea(t,d){
+  document.getElementById('caption-brief').value=t+'. '+d;
+  switchTab('composer',document.querySelectorAll('.nav-item')[1]);
+  toast('Idea loaded into Composer ✓');
+}
+
+// ── PROOFREAD ──────────────────────────────────
+async function proofreadContent(){
+  const text=document.getElementById('proof-input').value.trim();
+  const platform=document.getElementById('proof-platform').value;
+  if(!text){alert('Paste content first.');return;}
+  const el=document.getElementById('proof-result');
+  const scoreEl=document.getElementById('score-display');
+  const btn=document.getElementById('proof-btn');
+  btn.disabled=true;btn.textContent='...';
+  showLoading(el);
+  scoreEl.innerHTML='<div style="text-align:center;padding:18px 0"><div class="loading-dots"><span></span><span></span><span></span></div></div>';
+  try{
+    const raw=await callClaude(
+      `Analyze this ${platform} copy.\nTEXT: "${text}"\nReturn ONLY valid JSON: {"scores":{"clarity":0-100,"engagement":0-100,"grammar":0-100,"cta_strength":0-100,"platform_fit":0-100},"issues":[{"text":"exact phrase","type":"error|suggestion","fix":"corrected","reason":"short reason"}],"improved_version":"full improved text","summary":"2 sentence assessment"}`,
+      'You are a professional copywriter and content analyst. Return only valid JSON.'
+    );
+    const data=JSON.parse(raw.replace(/```json|```/g,'').trim());
+    const scores=data.scores;
+    const overall=Math.round(Object.values(scores).reduce((a,b)=>a+b,0)/5);
+    const sc=overall>=80?'var(--success)':overall>=60?'var(--warn)':'var(--danger)';
+    scoreEl.innerHTML=`<div style="text-align:center;margin-bottom:14px"><div style="font-family:'Bebas Neue';font-size:50px;color:${sc};line-height:1">${overall}</div><div style="font-size:10px;color:var(--muted2);letter-spacing:.1em;text-transform:uppercase">Overall Score</div></div>`+
+      Object.entries(scores).map(([k,v])=>{
+        const label=k.replace('_',' ').replace(/\b\w/g,c=>c.toUpperCase());
+        const col=v>=80?'var(--success)':v>=60?'var(--warn)':'var(--danger)';
+        return `<div style="margin-bottom:9px"><div style="display:flex;justify-content:space-between;margin-bottom:3px;font-size:12px"><span style="color:var(--muted2)">${label}</span><span style="font-family:'DM Mono';color:${col}">${v}</span></div><div class="score-bar"><div class="score-fill" style="width:${v}%;background:${col}"></div></div></div>`;
+      }).join('');
+    let marked=escapeHtml(text);
+    (data.issues||[]).forEach(issue=>{if(issue.text){const cls=issue.type==='error'?'mark-error':'mark-suggest';marked=marked.replace(escapeHtml(issue.text),`<span class="${cls}" title="${escapeHtml(issue.reason+' → '+issue.fix)}">${escapeHtml(issue.text)}</span>`);}});
+    el.innerHTML=`<div class="ai-response" style="margin-top:11px"><div class="ai-badge">Analysis Complete</div><div style="font-size:12px;color:var(--muted2);margin-bottom:9px">${escapeHtml(data.summary||'')}</div><div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:7px">Marked Copy</div><div class="proof-output" style="margin-bottom:10px">${marked}</div><div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:7px">Improved Version</div><div class="proof-output" style="margin-bottom:10px">${escapeHtml(data.improved_version||'')}</div><button class="btn btn-primary btn-sm" onclick="this.previousElementSibling.previousElementSibling.textContent&&(document.getElementById('proof-input').value=this.previousElementSibling.textContent)">Apply Improved</button></div>`;
+  }catch(e){el.innerHTML=`<div class="ai-response" style="margin-top:11px;border-color:var(--danger);color:var(--danger)">Analysis failed. Try again.</div>`;scoreEl.innerHTML='<div style="text-align:center;padding:18px 0;color:var(--danger);font-size:12px">Failed</div>';}
+  btn.disabled=false;btn.textContent='⊕ Analyze';
+}
+
+// ── DASHBOARD ──────────────────────────────────
+function updateDashboard() {
+  const scheduled = cachedPosts.filter(p=>p.status==='scheduled').length;
+  const drafts    = cachedPosts.filter(p=>p.status==='draft').length;
+  const posted    = cachedPosts.filter(p=>p.status==='posted').length;
+  const total     = cachedPosts.length;
+  const ss = document.getElementById('stat-scheduled'); if(ss) ss.textContent = scheduled;
+  const sd = document.getElementById('stat-drafts');    if(sd) sd.textContent = drafts;
+  const st = document.getElementById('stat-total');     if(st) st.textContent = total;
+  const sp = document.getElementById('stat-posted');    if(sp) sp.textContent = posted;
+
+  const du = document.getElementById('dash-upcoming');
+  if (!du) return;
+  const upcoming = cachedPosts.filter(p=>p.status==='scheduled'||p.status==='review').slice(0,5);
+  if (!upcoming.length) {
+    du.innerHTML = '<div style="text-align:center;padding:24px;color:var(--muted2);font-size:13px">No upcoming posts yet.<br><button class="btn btn-ghost btn-sm" style="margin-top:10px" onclick="switchTab(\'composer\',document.querySelectorAll(\'.nav-item\')[1])">+ Create your first post</button></div>';
+    return;
+  }
+  du.innerHTML = upcoming.map(q=>`
+    <div class="queue-item">
+      <div class="queue-plat">${q.plat}</div>
+      <div class="queue-info">
+        <div class="queue-caption">${escapeHtml(q.caption)}</div>
+        <div class="queue-meta"><span>${q.date}</span><span>${q.time}</span></div>
+      </div>
+      <div class="queue-status status-${q.status}">${q.status}</div>
+    </div>`).join('');
+}
+
+// ── TOAST NOTIFICATIONS ─────────────────────────
+function toast(msg, type='success') {
+  const t = document.createElement('div');
+  const bg = type==='success'?'var(--success)':type==='error'?'var(--danger)':'var(--accent)';
+  t.style.cssText = `position:fixed;bottom:24px;right:24px;background:var(--surface);border:1px solid ${bg};color:var(--text);padding:12px 18px;border-radius:10px;font-size:13px;font-weight:500;z-index:10000;display:flex;align-items:center;gap:8px;box-shadow:0 8px 32px rgba(0,0,0,.4);animation:fadeIn .2s ease;max-width:320px`;
+  t.innerHTML = `<span style="color:${bg};font-size:16px">${type==='success'?'✓':type==='error'?'✕':'⚡'}</span>${escapeHtml(msg)}`;
+  document.body.appendChild(t);
+  setTimeout(()=>{ t.style.opacity='0'; t.style.transition='opacity .3s'; setTimeout(()=>t.remove(),300); }, 3200);
+}
+
+// ── POSTS API ───────────────────────────────────
+let cachedPosts = [];
+let currentFilter = 'all';
+
+async function getAuthHeaders() {
+  if (!sb || isDemo) return {};
+  const { data: { session } } = await sb.auth.getSession();
+  return session ? { 'Authorization': `Bearer ${session.access_token}`, 'Content-Type': 'application/json' } : {};
+}
+
+async function loadPostsFromAPI() {
+  if (isDemo) { renderQueueFromCache(); updateDashboard(); return; }
+  const list = document.getElementById('queue-list');
+  list.innerHTML = '<div style="text-align:center;padding:36px;color:var(--muted2);font-size:13px"><div class="loading-dots"><span></span><span></span><span></span></div></div>';
+  try {
+    const headers = await getAuthHeaders();
+    const res = await fetch('/api/posts', { headers });
+    if (!res.ok) throw new Error(await res.text());
+    const data = await res.json();
+    cachedPosts = data.map(p => ({
+      id: p.id,
+      plat: platformEmoji(p.platforms?.[0] || 'ig'),
+      platKey: p.platforms?.[0] || 'ig',
+      caption: p.caption || '',
+      hashtags: p.hashtags || [],
+      date: p.scheduled_at ? new Date(p.scheduled_at).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '—',
+      time: p.scheduled_at ? new Date(p.scheduled_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) : '',
+      scheduledAt: p.scheduled_at,
+      status: p.status || 'draft',
+    }));
+    renderQueueFromCache();
+    updateDashboard();
+  } catch(e) {
+    list.innerHTML = `<div style="text-align:center;padding:36px;color:var(--danger);font-size:13px">Failed to load posts.<br><small>${escapeHtml(e.message)}</small></div>`;
+  }
+}
+
+function platformEmoji(key) {
+  const map = { ig:'📸', tw:'𝕏', tk:'▶', li:'in', fb:'f', yt:'▷', sc:'👻' };
+  return map[key] || '📱';
+}
+
+function renderQueueFromCache() {
+  const list = document.getElementById('queue-list');
+  let items = currentFilter === 'all' ? cachedPosts : cachedPosts.filter(q => q.status === currentFilter);
+  document.querySelectorAll('[id^="qf-"]').forEach(b => b.className = 'btn btn-ghost btn-sm');
+  const fb = document.getElementById('qf-' + currentFilter); if (fb) fb.className = 'btn btn-primary btn-sm';
+  if (!items.length) {
+    list.innerHTML = '<div style="text-align:center;padding:36px;color:var(--muted2);font-size:13px">No posts here yet.</div>';
+    return;
+  }
+  list.innerHTML = items.map(q => `
+    <div class="queue-item" id="qitem-${q.id}">
+      <div class="queue-plat">${q.plat}</div>
+      <div class="queue-info">
+        <div class="queue-caption">${escapeHtml(q.caption)}</div>
+        <div class="queue-meta"><span>${q.date}</span><span>${q.time}</span><span>${(q.hashtags||[]).slice(0,2).map(h=>escapeHtml(h)).join(' ')}</span></div>
+      </div>
+      <div class="queue-status status-${q.status}">${q.status}</div>
+      <button class="btn btn-ghost btn-sm" onclick="deletePost('${q.id}')" title="Delete" style="padding:4px 8px;color:var(--muted)">✕</button>
+    </div>`).join('');
+}
+
+async function deletePost(id) {
+  if (isDemo) { cachedPosts = cachedPosts.filter(p => p.id !== id); renderQueueFromCache(); return; }
+  const el = document.getElementById('qitem-' + id);
+  if (el) el.style.opacity = '0.4';
+  try {
+    const headers = await getAuthHeaders();
+    const res = await fetch('/api/posts', { method:'DELETE', headers, body: JSON.stringify({ id }) });
+    if (!res.ok) throw new Error(await res.text());
+    cachedPosts = cachedPosts.filter(p => p.id !== id);
+    renderQueueFromCache();
+    toast('Post deleted');
+  } catch(e) {
+    if (el) el.style.opacity = '1';
+    toast('Delete failed: ' + e.message, 'error');
+  }
+}
+
+function renderQueue(filter) { currentFilter = filter; loadPostsFromAPI(); }
+function filterQueue(f) { currentFilter = f; renderQueueFromCache(); document.querySelectorAll('[id^="qf-"]').forEach(b=>b.className='btn btn-ghost btn-sm'); const fb=document.getElementById('qf-'+f);if(fb)fb.className='btn btn-primary btn-sm'; }
+
+async function saveDraft() {
+  const caption = document.getElementById('composer-caption').value.trim();
+  if (!caption) { toast('Write a caption first', 'error'); return; }
+  const platforms = [...activePlats];
+  const hashArr = [...hashtags];
+  if (isDemo) {
+    cachedPosts.unshift({ id: 'demo-' + Date.now(), plat: platformEmoji(platforms[0]||'ig'), platKey: platforms[0]||'ig', caption, hashtags: hashArr, date:'Draft', time:'', status:'draft' });
+    toast('Draft saved (demo mode — not persisted)');
+    return;
+  }
+  const btn = document.querySelector('[onclick="saveDraft()"]');
+  btn.disabled = true; btn.textContent = '...';
+  try {
+    const headers = await getAuthHeaders();
+    const res = await fetch('/api/posts', { method:'POST', headers, body: JSON.stringify({ caption, platforms: platforms.length ? platforms : ['ig'], hashtags: hashArr, status:'draft' }) });
+    if (!res.ok) throw new Error(await res.text());
+    const post = await res.json();
+    cachedPosts.unshift({ id:post.id, plat:platformEmoji(post.platforms?.[0]||'ig'), platKey:post.platforms?.[0]||'ig', caption:post.caption, hashtags:post.hashtags||[], date:'Draft', time:'', status:'draft' });
+    toast('Draft saved ✓');
+    document.getElementById('composer-caption').value = '';
+    updateCharCount();
+  } catch(e) { toast('Save failed: ' + e.message, 'error'); }
+  btn.disabled = false; btn.textContent = 'Save Draft';
+}
+
+async function schedulePost() {
+  const caption = document.getElementById('composer-caption').value.trim();
+  if (!caption) { toast('Write a caption first', 'error'); return; }
+  const dateVal = document.getElementById('post-date').value;
+  const timeVal = document.getElementById('post-time').value;
+  if (!dateVal || !timeVal) { toast('Set a date and time', 'error'); return; }
+  const scheduledAt = new Date(dateVal + 'T' + timeVal).toISOString();
+  const platforms = [...activePlats];
+  const hashArr = [...hashtags];
+  if (isDemo) {
+    cachedPosts.unshift({ id:'demo-'+Date.now(), plat:platformEmoji(platforms[0]||'ig'), platKey:platforms[0]||'ig', caption, hashtags:hashArr, date:dateVal, time:timeVal, scheduledAt, status:'scheduled' });
+    toast('Post scheduled (demo mode — not persisted)');
+    return;
+  }
+  const btn = document.querySelector('[onclick="schedulePost()"]');
+  btn.disabled = true; btn.textContent = '...';
+  try {
+    const headers = await getAuthHeaders();
+    const res = await fetch('/api/posts', { method:'POST', headers, body: JSON.stringify({ caption, platforms: platforms.length?platforms:['ig'], hashtags:hashArr, scheduled_at:scheduledAt, status:'scheduled' }) });
+    if (!res.ok) throw new Error(await res.text());
+    const post = await res.json();
+    const d = new Date(post.scheduled_at);
+    cachedPosts.unshift({ id:post.id, plat:platformEmoji(post.platforms?.[0]||'ig'), platKey:post.platforms?.[0]||'ig', caption:post.caption, hashtags:post.hashtags||[], date:d.toLocaleDateString('en-US',{month:'short',day:'numeric'}), time:d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}), scheduledAt:post.scheduled_at, status:'scheduled' });
+    toast('⚡ Post scheduled for ' + d.toLocaleString([], {month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}));
+    document.getElementById('composer-caption').value = '';
+    updateCharCount();
+  } catch(e) { toast('Schedule failed: ' + e.message, 'error'); }
+  btn.disabled = false; btn.textContent = '⚡ Schedule';
+}
+
+// ── CALENDAR ───────────────────────────────────
+let calYear = new Date().getFullYear();
+let calMonth = new Date().getMonth();
+
+function renderCalendar(){
+  const grid = document.getElementById('calendar-grid');
+  const titleEl = document.querySelector('#tab-calendar .card-title');
+  if (titleEl) titleEl.textContent = new Date(calYear, calMonth, 1).toLocaleDateString('en-US',{month:'long',year:'numeric'});
+
+  const firstDay    = new Date(calYear, calMonth, 1).getDay();
+  const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
+  const prevDays    = new Date(calYear, calMonth, 0).getDate();
+  const today       = new Date();
+
+  // Build a map of day → [platKey, ...] from real cachedPosts
+  const dotColors = { ig:'var(--ig)',tw:'var(--tw)',tk:'var(--tk)',li:'var(--li)',yt:'var(--yt)',fb:'var(--fb)',sc:'#c8c800',draft:'var(--muted)' };
+  const postDays = {};
+  cachedPosts.forEach(p => {
+    if (!p.scheduledAt) return;
+    const d = new Date(p.scheduledAt);
+    if (d.getFullYear()===calYear && d.getMonth()===calMonth) {
+      const day = d.getDate();
+      if (!postDays[day]) postDays[day] = [];
+      postDays[day].push(p.platKey || 'draft');
+    }
+  });
+
+  let html = '';
+  for (let i=0; i<firstDay; i++) html += `<div class="cal-day other-month">${prevDays-firstDay+i+1}</div>`;
+  for (let d=1; d<=daysInMonth; d++) {
+    const isToday = d===today.getDate() && calMonth===today.getMonth() && calYear===today.getFullYear();
+    const dots = postDays[d] || [];
+    html += `<div class="cal-day ${isToday?'today':''} ${dots.length?'has-post':''}">
+      <span>${d}</span>
+      ${dots.length ? `<div class="post-dots">${dots.slice(0,4).map(k=>`<div class="pdot" style="background:${dotColors[k]||'var(--muted)'}"></div>`).join('')}</div>` : ''}
+    </div>`;
+  }
+  const rem = 42 - firstDay - daysInMonth;
+  for (let d=1; d<=rem; d++) html += `<div class="cal-day other-month">${d}</div>`;
+  grid.innerHTML = html;
+}
+
+function calPrev() { calMonth--; if(calMonth<0){calMonth=11;calYear--;} renderCalendar(); }
+function calNext() { calMonth++; if(calMonth>11){calMonth=0;calYear++;} renderCalendar(); }
+
+// ══════════════════════════════════════════════════════════
+//  ANALYTICS ENGINE
+// ══════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════
+//  ANALYTICS ENGINE  — pulls from /api/analytics
+// ══════════════════════════════════════════════════════════
+const platColors = { ig:'var(--ig)',tw:'var(--tw)',tk:'var(--tk)',li:'var(--li)',yt:'var(--yt)',fb:'var(--fb)',sc:'#c8c800' };
+let analyticsData = null;
+let currentPlatKey = 'ig';
+
+async function loadAnalytics() {
+  if (isDemo) { analyticsData = buildClientDemoData(); renderAnalytics('ig'); return; }
+  try {
+    const headers = await getAuthHeaders();
+    const res = await fetch('/api/analytics', { headers });
+    if (!res.ok) throw new Error(await res.text());
+    analyticsData = await res.json();
+  } catch(e) {
+    console.warn('[analytics] falling back to client demo:', e.message);
+    analyticsData = buildClientDemoData();
+  }
+  renderAnalytics(currentPlatKey);
+}
+
+function buildClientDemoData() {
+  const email = currentUser?.email || 'demo';
+  let s = 0; for (const c of email) { s = ((s<<5)-s)+c.charCodeAt(0)|0; } s = Math.abs(s);
+  const gen = (base, variance, days=30) => {
+    const pts=[]; let v=base;
+    for(let i=days;i>=0;i--){ v+=Math.floor(((s*(i+1))%variance)-variance/3); v=Math.max(v,Math.floor(base*.6)); pts.push({date:new Date(Date.now()-i*86400000).toISOString().split('T')[0],value:v}); }
+    return pts;
+  };
+  return {
+    ig:{followers:12000+(s%8000),following:380+(s%200),posts_count:290+(s%100),engagement_rate:+(3.2+(s%30)/10).toFixed(2),avg_likes:480+(s%300),avg_comments:18+(s%20),avg_shares:42+(s%40),growth_7d:80+(s%150),growth_30d:320+(s%600),best_day:'Tuesday',best_hour:'6:00 PM',top_format:'Reels',history:gen(12000+(s%8000),200)},
+    tw:{followers:8400+(s%5000),following:290+(s%150),posts_count:3100+(s%1000),engagement_rate:+(1.8+(s%20)/10).toFixed(2),avg_likes:120+(s%100),avg_comments:14+(s%15),avg_shares:38+(s%50),growth_7d:55+(s%120),growth_30d:210+(s%400),best_day:'Wednesday',best_hour:'8:00 AM',top_format:'Threads',history:gen(8400+(s%5000),150)},
+    tk:{followers:4200+(s%3000),following:110+(s%80),posts_count:98+(s%60),engagement_rate:+(5.8+(s%40)/10).toFixed(2),avg_likes:680+(s%500),avg_comments:34+(s%30),avg_shares:120+(s%100),growth_7d:210+(s%400),growth_30d:900+(s%1500),best_day:'Friday',best_hour:'7:00 PM',top_format:'Trending audio',history:gen(4200+(s%3000),300)},
+    li:{followers:2100+(s%1500),following:430+(s%200),posts_count:180+(s%80),engagement_rate:+(2.4+(s%15)/10).toFixed(2),avg_likes:98+(s%80),avg_comments:22+(s%25),avg_shares:18+(s%20),growth_7d:24+(s%60),growth_30d:95+(s%200),best_day:'Wednesday',best_hour:'9:00 AM',top_format:'Articles',history:gen(2100+(s%1500),80)},
+    yt:{followers:18400+(s%12000),following:0,posts_count:94+(s%60),engagement_rate:+(4.1+(s%25)/10).toFixed(2),avg_likes:820+(s%600),avg_comments:65+(s%80),avg_views:12400+(s%18000),watch_time_hrs:3200+(s%4800),growth_7d:280+(s%400),growth_30d:1100+(s%2000),best_day:'Friday',best_hour:'4:00 PM',top_format:'Tutorials',history:gen(18400+(s%12000),350)},
+    fb:{followers:31600+(s%20000),following:310+(s%100),posts_count:218+(s%100),engagement_rate:+(1.4+(s%15)/10).toFixed(2),avg_likes:310+(s%250),avg_comments:28+(s%30),avg_shares:95+(s%100),page_reach:18000+(s%42000),page_likes:Math.round((31600+(s%20000))*.92),growth_7d:120+(s%200),growth_30d:480+(s%800),best_day:'Thursday',best_hour:'1:00 PM',top_format:'Videos',history:gen(31600+(s%20000),180)},
+    sc:{followers:8900+(s%6000),following:620+(s%300),posts_count:410+(s%200),engagement_rate:+(5.6+(s%30)/10).toFixed(2),avg_comments:85+(s%100),avg_shares:210+(s%200),avg_story_views:3200+(s%6800),snap_score:480000+(s%320000),growth_7d:95+(s%180),growth_30d:380+(s%700),best_day:'Saturday',best_hour:'7:00 PM',top_format:'Stories',history:gen(8900+(s%6000),120)},
+  };
+}
+
+function switchPlatAnalytics(key, el) {
+  currentPlatKey = key;
+  document.querySelectorAll('.plat-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  if (analyticsData) renderAnalytics(key);
+  else loadAnalytics();
+}
+
+function renderAnalytics(key) {
+  if (!analyticsData) { loadAnalytics(); return; }
+  const d = analyticsData[key]; if (!d) return;
+  const color = platColors[key] || 'var(--accent)';
+  const history = d.history || [];
+  const isYT=key==='yt', isSC=key==='sc', isFB=key==='fb';
+  const monthly = d.growth_30d||0;
+  const mSign = monthly>0?'+':''; const mColor = monthly>=0?'var(--success)':'var(--danger)';
+  let statsHtml;
+  if (isYT) {
+    statsHtml = `<div class="stat-card c1"><div class="stat-label">Subscribers</div><div class="stat-val c1">${fmtNum(d.followers)}</div><div class="stat-change">Total</div></div><div class="stat-card c2"><div class="stat-label">Monthly Growth</div><div class="stat-val c2">${mSign}${fmtNum(monthly)}</div><div class="stat-change" style="color:${mColor}">${monthly>=0?'↑ Growing':'↓ Declining'}</div></div><div class="stat-card c3"><div class="stat-label">Avg Views / Video</div><div class="stat-val c3">${fmtNum(d.avg_views||0)}</div><div class="stat-change">Last 30 days</div></div><div class="stat-card c4"><div class="stat-label">Watch Time (hrs)</div><div class="stat-val c4">${fmtNum(d.watch_time_hrs||0)}</div><div class="stat-change">${d.posts_count} videos</div></div>`;
+  } else if (isSC) {
+    statsHtml = `<div class="stat-card c1"><div class="stat-label">Subscribers</div><div class="stat-val c1">${fmtNum(d.followers)}</div><div class="stat-change">Total</div></div><div class="stat-card c2"><div class="stat-label">Monthly Growth</div><div class="stat-val c2">${mSign}${fmtNum(monthly)}</div><div class="stat-change" style="color:${mColor}">${monthly>=0?'↑ Growing':'↓ Declining'}</div></div><div class="stat-card c3"><div class="stat-label">Avg Story Views</div><div class="stat-val c3">${fmtNum(d.avg_story_views||0)}</div><div class="stat-change">Per story</div></div><div class="stat-card c4"><div class="stat-label">Snap Score</div><div class="stat-val c4">${fmtNum(d.snap_score||0)}</div><div class="stat-change">${d.posts_count} snaps</div></div>`;
+  } else if (isFB) {
+    statsHtml = `<div class="stat-card c1"><div class="stat-label">Page Followers</div><div class="stat-val c1">${fmtNum(d.followers)}</div><div class="stat-change">Total</div></div><div class="stat-card c2"><div class="stat-label">Monthly Growth</div><div class="stat-val c2">${mSign}${fmtNum(monthly)}</div><div class="stat-change" style="color:${mColor}">${monthly>=0?'↑ Growing':'↓ Declining'}</div></div><div class="stat-card c3"><div class="stat-label">Page Reach</div><div class="stat-val c3">${fmtNum(d.page_reach||0)}</div><div class="stat-change">Organic this month</div></div><div class="stat-card c4"><div class="stat-label">Page Likes</div><div class="stat-val c4">${fmtNum(d.page_likes||0)}</div><div class="stat-change">${d.posts_count} posts</div></div>`;
+  } else {
+    statsHtml = `<div class="stat-card c1"><div class="stat-label">Followers</div><div class="stat-val c1">${fmtNum(d.followers)}</div><div class="stat-change">${d.following} following</div></div><div class="stat-card c2"><div class="stat-label">Monthly Growth</div><div class="stat-val c2">${mSign}${fmtNum(monthly)}</div><div class="stat-change" style="color:${mColor}">${monthly>=0?'↑ Growing':'↓ Declining'}</div></div><div class="stat-card c3"><div class="stat-label">Avg Engagement</div><div class="stat-val c3">${d.engagement_rate}%</div><div class="stat-change">Per post</div></div><div class="stat-card c4"><div class="stat-label">Posts</div><div class="stat-val c4">${fmtNum(d.posts_count)}</div><div class="stat-change">Best: ${d.best_day||'—'} ${d.best_hour||''}</div></div>`;
+  }
+  document.getElementById('analytics-stats').innerHTML = statsHtml;
+
+  if (history.length>=2) { const fmt=s=>new Date(s).toLocaleDateString('en-US',{month:'short',day:'numeric'}); document.getElementById('analytics-range').textContent=`${fmt(history[0].date)} – ${fmt(history[history.length-1].date)}`; }
+
+  const el1=document.getElementById('sb-col-followers'); if(el1) el1.textContent=(isYT||isSC)?'Subscribers':isFB?'Page Followers':'Followers';
+  const el2=document.getElementById('sb-col-eng'); if(el2) el2.textContent=isYT?'Views (avg)':isSC?'Story Views':isFB?'Reach':'Engagement';
+  const el3=document.getElementById('sb-subtitle'); if(el3) el3.textContent=(isYT||isSC)?'Subscriber changes & grades':'Follower changes & grades — SocialBlade style';
+
+  if (history.length>1) {
+    drawLineChart('growth-chart', history.map(h=>h.value), color, true);
+    drawLineChart('engagement-chart', history.map((_,i)=>+(d.engagement_rate-(i%5)*.1).toFixed(2)), 'var(--accent)', false);
+  }
+
+  renderDemographics(key);
+
+  const tbody=document.getElementById('sb-tbody');
+  if (tbody && history.length>1) {
+    tbody.innerHTML = history.slice(-14).reverse().map((h,i,arr)=>{
+      const prev=arr[i+1]; const delta=prev?h.value-prev.value:0;
+      const wk=arr.slice(i,i+7); const wd=wk.length>=7?wk.reduce((s,r,ri,a)=>ri>0?s+(r.value-(a[ri-1]?.value||r.value)):s,0):null;
+      const grade=delta>0?'A':delta===0?'B':delta>-50?'C':'D';
+      const fmt=s=>new Date(s).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+      const dc=delta>0?'pos':delta<0?'neg':'neu'; const wc=wd==null?'neu':wd>0?'pos':wd<0?'neg':'neu';
+      const engCell=isYT?`<td style="color:var(--yt)">${fmtNum(Math.round((d.avg_views||0)*(.9+Math.random()*.2)))}</td>`:isSC?`<td style="color:#c8c800">${fmtNum(Math.round((d.avg_story_views||0)*(.9+Math.random()*.2)))}</td>`:isFB?`<td style="color:var(--fb)">${fmtNum(Math.round((d.page_reach||0)/30*(.8+Math.random()*.4)))}</td>`:`<td style="color:var(--accent)">${d.engagement_rate}%</td>`;
+      return `<tr><td style="color:var(--text)">${fmt(h.date)}</td><td style="color:var(--text)">${fmtNum(h.value)}</td><td class="${dc}">${delta>0?'+':''}${delta}</td><td class="${wc}">${wd==null?'—':(wd>0?'+':'')+wd}</td>${engCell}<td><span class="grade grade-${grade}">${grade}</span></td></tr>`;
+    }).join('');
+  }
+
+  renderTopPosts(key, color);
+
+}
+
+function drawLineChart(elId, values, color, showArea) {
+  const W=700, H=160, pad={t:10,r:10,b:30,l:50};
+  const cW=W-pad.l-pad.r, cH=H-pad.t-pad.b;
+  const min=Math.min(...values), max=Math.max(...values);
+  const range=max-min||1;
+  const pts=values.map((v,i)=>[pad.l+i/(values.length-1)*cW, pad.t+cH-(v-min)/range*cH]);
+  const pathD='M'+pts.map(p=>p.join(',')).join(' L');
+  const areaD=pathD+` L${pts[pts.length-1][0]},${pad.t+cH} L${pts[0][0]},${pad.t+cH} Z`;
+  // Y axis labels
+  const yLabels=[0,0.25,0.5,0.75,1].map(t=>{
+    const val=min+t*range;
+    const y=pad.t+cH-t*cH;
+    return `<text x="${pad.l-6}" y="${y+4}" text-anchor="end" fill="var(--muted)" font-size="10" font-family="DM Mono">${val>1000?fmtNum(Math.round(val)):val.toFixed(1)}</text><line x1="${pad.l}" y1="${y}" x2="${pad.l+cW}" y2="${y}" stroke="var(--border)" stroke-width="0.5"/>`;
+  }).join('');
+  // X axis labels (every 5 days)
+  const xLabels=values.map((_,i)=>{if(i%7!==0)return'';const x=pad.l+i/(values.length-1)*cW;return`<text x="${x}" y="${H-6}" text-anchor="middle" fill="var(--muted)" font-size="10" font-family="DM Mono">${i===0?'30d ago':i===values.length-1?'Today':i+'d'}</text>`;}).join('');
+  const uid='g'+Math.random().toString(36).slice(2);
+  document.getElementById(elId).innerHTML=`<svg class="chart" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="${uid}" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="${color}" stop-opacity="0.3"/>
+        <stop offset="100%" stop-color="${color}" stop-opacity="0.02"/>
+      </linearGradient>
+    </defs>
+    ${yLabels}${xLabels}
+    ${showArea?`<path d="${areaD}" fill="url(#${uid})"/>`:''}
+    <path d="${pathD}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+    <circle cx="${pts[pts.length-1][0]}" cy="${pts[pts.length-1][1]}" r="4" fill="${color}"/>
+  </svg>`;
+}
+
+const demoPlatDemographics = {
+  ig: { gender:[{label:'Female',pct:62,color:'var(--accent2)'},{label:'Male',pct:35,color:'var(--tw)'},{label:'Other',pct:3,color:'var(--muted)'}],
+        ages:[{label:'18-24',pct:31},{label:'25-34',pct:38},{label:'35-44',pct:18},{label:'45-54',pct:9},{label:'55+',pct:4}],
+        locations:['United States','United Kingdom','Canada','Australia','Germany'] },
+  tw: { gender:[{label:'Male',pct:63,color:'var(--tw)'},{label:'Female',pct:32,color:'var(--accent2)'},{label:'Other',pct:5,color:'var(--muted)'}],
+        ages:[{label:'18-24',pct:22},{label:'25-34',pct:35},{label:'35-44',pct:24},{label:'45-54',pct:12},{label:'55+',pct:7}],
+        locations:['United States','India','Brazil','Japan','United Kingdom'] },
+  tk: { gender:[{label:'Female',pct:54,color:'var(--accent2)'},{label:'Male',pct:44,color:'var(--tw)'},{label:'Other',pct:2,color:'var(--muted)'}],
+        ages:[{label:'13-17',pct:18},{label:'18-24',pct:44},{label:'25-34',pct:24},{label:'35-44',pct:10},{label:'45+',pct:4}],
+        locations:['United States','Mexico','Brazil','Indonesia','Philippines'] },
+  li: { gender:[{label:'Male',pct:57,color:'var(--tw)'},{label:'Female',pct:41,color:'var(--accent2)'},{label:'Other',pct:2,color:'var(--muted)'}],
+        ages:[{label:'18-24',pct:12},{label:'25-34',pct:36},{label:'35-44',pct:30},{label:'45-54',pct:16},{label:'55+',pct:6}],
+        locations:['United States','India','United Kingdom','Canada','Netherlands'] },
+  yt: { gender:[{label:'Male',pct:58,color:'var(--tw)'},{label:'Female',pct:38,color:'var(--accent2)'},{label:'Other',pct:4,color:'var(--muted)'}],
+        ages:[{label:'18-24',pct:24},{label:'25-34',pct:37},{label:'35-44',pct:22},{label:'45-54',pct:12},{label:'55+',pct:5}],
+        locations:['United States','India','United Kingdom','Brazil','Canada'] },
+};
+
+function renderDemographics(key) {
+  const d = demoPlatDemographics[key];
+  document.getElementById('demographics-panel').innerHTML = `
+    <div style="font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:10px">Gender Split</div>
+    ${d.gender.map(g=>`<div class="demo-bar-wrap"><div class="demo-bar-label"><span>${g.label}</span><span style="font-family:'DM Mono'">${g.pct}%</span></div><div class="demo-bar"><div class="demo-fill" style="width:${g.pct}%;background:${g.color}"></div></div></div>`).join('')}
+    <div style="font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:14px 0 10px">Age Groups</div>
+    ${d.ages.map(a=>`<div class="demo-bar-wrap"><div class="demo-bar-label"><span>${a.label}</span><span style="font-family:'DM Mono'">${a.pct}%</span></div><div class="demo-bar"><div class="demo-fill" style="width:${a.pct}%;background:var(--accent)"></div></div></div>`).join('')}
+    <div style="font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:14px 0 8px">Top Locations</div>
+    ${d.locations.map((l,i)=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px"><span style="color:var(--muted2)">${i+1}. ${l}</span><span style="font-family:'DM Mono';color:var(--text)">${(20-i*3.5).toFixed(1)}%</span></div>`).join('')}`;
+}
+
+const postCaptions = {
+  ig:['Behind the scenes: how we shot our biggest campaign 🎬','Morning ritual that changed everything for me ✨','The truth about going viral (it\'s not what you think)','Product launch day energy 🚀','Real talk: what I wish I knew when I started'],
+  tw:['Hot take: most "viral" content is just luck in disguise','Thread on why I deleted 3 years of posts and started over 🧵','The algorithm doesn\'t hate you. Here\'s what\'s actually happening','Unpopular opinion: LinkedIn is the most underrated platform rn','Building in public, week 47. Here\'s the update:'],
+  tk:['POV: you just discovered this hack 👀','Day in my life as a creator #fyp','The tutorial nobody asked for but everyone needed','Answer to @user — here\'s exactly how we did it','Watching my analytics go from 0 to 41k in 90 days'],
+  li:['3 things I learned from scaling to 3k followers in 90 days','Why I\'m leaving corporate to build something of my own','The networking advice that actually works in 2026','Open to work? Here\'s what actually gets you hired','Our Q1 retrospective — the wins, losses, and lessons'],
+  yt:['I Tried Every Social Media Strategy for 90 Days — Here\'s What Worked','How to Grow from 0 to 10k Subscribers (Without Paid Ads)','The Content Calendar System That Runs My Whole Business','Stop Making These YouTube Mistakes (I Made All of Them)','Full Day of Content Creation — Behind the Camera'],
+};
+function renderTopPosts(key, color) {
+  const isYT = key === 'yt';
+  const captions = postCaptions[key] || postCaptions.ig;
+  const posts = captions.map((c)=>({
+    caption: c,
+    likes:    Math.round(800  + Math.random() * 4200),
+    comments: Math.round(40   + Math.random() * 320),
+    reach:    Math.round(5000 + Math.random() * 42000),
+    views:    Math.round(8000 + Math.random() * 92000),
+    watchMin: Math.round(3    + Math.random() * 9),
+  }));
+  document.getElementById('top-posts-grid').innerHTML = posts.map(p => `
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:13px">
+      <div style="background:var(--surface3);border-radius:7px;height:90px;display:flex;align-items:center;justify-content:center;margin-bottom:10px;font-size:20px;color:var(--muted)">
+        ${isYT ? '▷' : '📷'}
+      </div>
+      <div style="font-size:12px;color:var(--text);line-height:1.5;margin-bottom:10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${escapeHtml(p.caption)}</div>
+      ${isYT ? `
+      <div style="display:flex;gap:10px;font-size:10px;font-family:'DM Mono';flex-wrap:wrap">
+        <span style="color:var(--yt)">▶ ${fmtNum(p.views)}</span>
+        <span style="color:var(--accent2)">❤ ${fmtNum(p.likes)}</span>
+        <span style="color:var(--muted2)">💬 ${fmtNum(p.comments)}</span>
+        <span style="color:var(--accent)">⏱ ${p.watchMin}m avg</span>
+      </div>` : `
+      <div style="display:flex;gap:10px;font-size:10px;font-family:'DM Mono'">
+        <span style="color:var(--accent2)">❤ ${fmtNum(p.likes)}</span>
+        <span style="color:var(--muted2)">💬 ${fmtNum(p.comments)}</span>
+        <span style="color:var(--muted2)">👁 ${fmtNum(p.reach)}</span>
+      </div>`}
+    </div>`).join('');
+}
+
+function fmtNum(n) { return n>=1000?(n/1000).toFixed(1)+'k':String(n); }
+</script>
+</body>
+</html>

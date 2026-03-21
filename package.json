@@ -1,0 +1,17 @@
+{
+  "name": "flow-social-organizer",
+  "version": "2.0.0",
+  "description": "AI-powered social media organizer — post scheduler, analytics, AI writing tools",
+  "private": true,
+  "scripts": {
+    "dev": "vercel dev",
+    "deploy": "vercel --prod",
+    "setup": "bash setup.sh"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
