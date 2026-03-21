@@ -1,10 +1,5 @@
-/**
- * /api/claude.js  —  Anthropic API proxy
- * Keeps your API key off the client. Called by all AI features in the app.
- */
-export default async function handler(req, res) {
-  // CORS preflight
-  res.setHeader('Access-Control-Allow-Origin', process.env.ALLOWED_ORIGIN || '*');
+module.exports = async function handler(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   if (req.method === 'OPTIONS') return res.status(200).end();
@@ -24,15 +19,9 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify(req.body),
     });
-
     const data = await response.json();
-    if (!response.ok) {
-      console.error('[claude proxy] API error:', data);
-      return res.status(response.status).json(data);
-    }
-    return res.status(200).json(data);
+    return res.status(response.status).json(data);
   } catch (err) {
-    console.error('[claude proxy] fetch error:', err);
     return res.status(500).json({ error: 'Proxy error', details: err.message });
   }
-}
+};
