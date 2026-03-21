@@ -2,6 +2,9 @@
   "name": "flow-social-organizer",
   "version": "2.0.0",
   "private": true,
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0"
+  },
   "scripts": {
     "build": "echo 'No build step required'"
   },
