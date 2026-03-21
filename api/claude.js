@@ -4,21 +4,17 @@ module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+  if (!process.env.ANTHROPIC_API_KEY) return res.status(500).json({ error: 'ANTHROPIC_API_KEY not set' });
 
-  if (!process.env.ANTHROPIC_API_KEY) {
-    return res.status(500).json({ error: 'ANTHROPIC_API_KEY is not set.' });
-  }
-
-  // Parse body manually if needed
   let body = req.body;
-  if (typeof body === 'string') {
-    try { body = JSON.parse(body); } catch(e) {}
-  }
-  if (!body) {
-    return res.status(400).json({ error: 'Empty request body' });
+  if (!body || Object.keys(body).length === 0) {
+    const chunks = [];
+    for await (const chunk of req) chunks.push(chunk);
+    try { body = JSON.parse(Buffer.concat(chunks).toString()); } catch(e) {
+      return res.status(400).json({ error: 'Invalid JSON body' });
+    }
   }
 
-  // Force correct model
   body.model = 'claude-sonnet-4-6';
 
   try {
@@ -34,6 +30,6 @@ module.exports = async function handler(req, res) {
     const data = await response.json();
     return res.status(response.status).json(data);
   } catch (err) {
-    return res.status(500).json({ error: 'Proxy error', details: err.message });
+    return res.status(500).json({ error: err.message });
   }
 };
