@@ -5,6 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Flōw — Social Media Organizer</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// Early theme init — runs before page paint to prevent flash
+(function(){
+  const t = localStorage.getItem('flow_theme')||'light';
+  const dark = t==='dark'||(t==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches);
+  document.documentElement.setAttribute('data-theme', dark?'dark':'light');
+})();
+</script>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Sora:wght@300;400;500;600&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
 <style>
 
@@ -243,7 +251,7 @@ body {
 .topbar-divider { width: 1px; height: 16px; background: var(--border); }
 .topbar-sub { font-size: 12px; color: var(--text-3); }
 .topbar-actions { margin-left: auto; display: flex; gap: 8px; }
-.content { padding: 28px; flex: 1; }
+.content { padding: 28px; padding-bottom: 52px; flex: 1; }
 
 /* Tab panels */
 .tab-panel { display: none; }
@@ -542,6 +550,49 @@ svg.chart { width: 100%; height: 180px; display: block; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--border-strong); }
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   DARK MODE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+[data-theme="dark"] {
+  --bg:           #111010;
+  --bg-warm:      #151312;
+  --surface:      #1A1816;
+  --surface2:     #201E1B;
+  --surface3:     #272421;
+  --sidebar-bg:   #161412;
+  --border:       #2E2A26;
+  --border-soft:  #252220;
+  --border-strong:#3D3830;
+  --text:         #F0EDE8;
+  --text-2:       #A89E94;
+  --text-3:       #6B6259;
+  --text-4:       #3D3730;
+  --accent:       #C49070;
+  --accent-light: rgba(160,113,79,.15);
+  --accent-mid:   #A0714F;
+  --accent-dark:  #E0B090;
+  --success:      #5DAE7A;
+  --success-bg:   rgba(74,124,89,.15);
+  --warn:         #D4A040;
+  --warn-bg:      rgba(176,124,38,.12);
+  --danger:       #C05050;
+  --danger-bg:    rgba(155,53,53,.15);
+  --shadow-xs:    0 1px 2px rgba(0,0,0,.4);
+  --shadow-sm:    0 1px 4px rgba(0,0,0,.5), 0 2px 8px rgba(0,0,0,.3);
+  --shadow-md:    0 4px 16px rgba(0,0,0,.5), 0 1px 4px rgba(0,0,0,.3);
+  --shadow-lg:    0 12px 40px rgba(0,0,0,.6), 0 2px 8px rgba(0,0,0,.4);
+}
+
+/* Theme picker active state */
+.theme-option-active {
+  border-color: var(--accent) !important;
+  background: var(--accent-light) !important;
+}
+
+/* Toggle switch checked state */
+.sw-on { background: var(--accent) !important; }
+.sw-on .sw-knob-inner { transform: translateX(16px) !important; }
 </style>
 
 </head>
@@ -632,6 +683,8 @@ svg.chart { width: 100%; height: 180px; display: block; }
     <div class="nav-item" onclick="switchTab('pitchdeck',this)"><span class="icon">📊</span> Pitch Decks</div>
     <div class="nav-item" onclick="switchTab('rolodex',this)"><span class="icon">👥</span> Rolodex</div>
     <div class="nav-item" onclick="switchTab('algorithm',this)"><span class="icon">⚙</span> Algorithm Guide</div>
+    <div class="nav-label">Account</div>
+    <div class="nav-item" onclick="switchTab('settings',this)"><span class="icon">◐</span> Settings</div>
     <div class="nav-label">Platforms</div>
     <div class="nav-item" onclick="switchTab('connections',this)"><span class="icon">🔗</span> Connect Accounts</div>
     <div class="nav-item" id="nav-ig"><span class="icon">📸</span> Instagram<div class="platform-dots"><div class="dot" id="dot-ig" style="background:var(--muted)"></div></div></div>
@@ -641,6 +694,8 @@ svg.chart { width: 100%; height: 180px; display: block; }
     <div class="nav-item" id="nav-yt"><span class="icon">▷</span> YouTube<div class="platform-dots"><div class="dot" id="dot-yt" style="background:var(--muted)"></div></div></div>
     <div class="nav-item" id="nav-fb"><span class="icon">f</span> Facebook<div class="platform-dots"><div class="dot" id="dot-fb" style="background:var(--muted)"></div></div></div>
     <div class="nav-item" id="nav-sc"><span class="icon">👻</span> Snapchat<div class="platform-dots"><div class="dot" id="dot-sc" style="background:var(--muted)"></div></div></div>
+    <div class="nav-label">Account</div>
+    <div class="nav-item" onclick="switchTab('settings',this)"><span class="icon">◎</span> Settings</div>
   </nav>
 </aside>
 
@@ -1045,19 +1100,216 @@ svg.chart { width: 100%; height: 180px; display: block; }
     </div>
   </div>
 
-  </div><!-- /content -->
+  <!-- ────────────────── SETTINGS ────────────────── -->
+  <div id="tab-settings" class="tab-panel" style="padding:28px">
 
-  <!-- App footer -->
-  <div style="padding:14px 28px;border-top:1px solid var(--border-soft);display:flex;align-items:center;justify-content:center;gap:20px;background:var(--surface);flex-shrink:0">
-    <span style="font-size:11px;color:var(--text-4)">© 2026 Fl&#333;w</span>
-    <span style="color:var(--border);font-size:11px">·</span>
-    <a href="#" onclick="showLegal('privacy');return false;" style="font-size:11px;color:var(--text-4);text-decoration:none" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-4)'">Privacy Policy</a>
-    <span style="color:var(--border);font-size:11px">·</span>
-    <a href="#" onclick="showLegal('terms');return false;" style="font-size:11px;color:var(--text-4);text-decoration:none" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-4)'">Terms of Service</a>
-  </div>
+    <!-- Section header -->
+    <div style="margin-bottom:24px">
+      <div style="font-family:'Cormorant Garamond',serif;font-size:24px;font-style:italic;color:var(--text);margin-bottom:4px">Settings</div>
+      <div style="font-size:13px;color:var(--text-3)">Manage your account, appearance, and preferences.</div>
+    </div>
+
+    <div class="grid-2" style="gap:20px;align-items:start">
+
+      <!-- LEFT COLUMN -->
+      <div style="display:flex;flex-direction:column;gap:16px">
+
+        <!-- Profile -->
+        <div class="card">
+          <div class="card-title">Profile</div>
+          <div class="card-sub">Your public-facing name and account email.</div>
+          <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px">
+            <div id="settings-avatar" style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-dark));display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:600;color:#fff;flex-shrink:0"></div>
+            <div>
+              <div id="settings-name-display" style="font-size:15px;font-weight:600;color:var(--text)"></div>
+              <div id="settings-email-display" style="font-size:12px;color:var(--text-3);margin-top:2px"></div>
+            </div>
+          </div>
+          <div class="field-group" style="margin-bottom:12px">
+            <div class="field-label">Display Name</div>
+            <input class="input" id="settings-name" placeholder="Your full name">
+          </div>
+          <div class="field-group" style="margin-bottom:16px">
+            <div class="field-label">Brand / Handle</div>
+            <input class="input" id="settings-brand" placeholder="@yourbrand">
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="saveProfile()">Save Profile</button>
+          <div id="profile-msg" style="font-size:12px;margin-top:8px;display:none"></div>
+        </div>
+
+        <!-- Change Email -->
+        <div class="card">
+          <div class="card-title">Email Address</div>
+          <div class="card-sub">Update the email associated with your account.</div>
+          <div class="field-group" style="margin-bottom:12px">
+            <div class="field-label">New Email</div>
+            <input class="input" id="settings-new-email" type="email" placeholder="new@email.com">
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="changeEmail()">Update Email</button>
+          <div id="email-msg" style="font-size:12px;margin-top:8px;display:none"></div>
+        </div>
+
+        <!-- Change Password -->
+        <div class="card">
+          <div class="card-title">Password</div>
+          <div class="card-sub">Choose a strong password of at least 8 characters.</div>
+          <div class="field-group" style="margin-bottom:12px">
+            <div class="field-label">New Password</div>
+            <input class="input" id="settings-new-pass" type="password" placeholder="New password">
+          </div>
+          <div class="field-group" style="margin-bottom:16px">
+            <div class="field-label">Confirm Password</div>
+            <input class="input" id="settings-confirm-pass" type="password" placeholder="Confirm new password">
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="changePassword()">Update Password</button>
+          <div id="pass-msg" style="font-size:12px;margin-top:8px;display:none"></div>
+        </div>
+
+      </div><!-- /left col -->
+
+      <!-- RIGHT COLUMN -->
+      <div style="display:flex;flex-direction:column;gap:16px">
+
+        <!-- Appearance -->
+        <div class="card">
+          <div class="card-title">Appearance</div>
+          <div class="card-sub">Customise how Flōw looks on your device.</div>
+
+          <div style="margin-bottom:18px">
+            <div class="field-label" style="margin-bottom:10px">Theme</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+              <div id="theme-light" onclick="setTheme('light')" style="border:2px solid var(--border);border-radius:var(--r);padding:12px 8px;text-align:center;cursor:pointer;transition:all .15s">
+                <div style="width:100%;height:28px;background:#F7F5F0;border-radius:4px;margin-bottom:6px;border:1px solid #E4E0D8"></div>
+                <div style="font-size:11px;font-weight:500;color:var(--text-2)">Light</div>
+              </div>
+              <div id="theme-dark" onclick="setTheme('dark')" style="border:2px solid var(--border);border-radius:var(--r);padding:12px 8px;text-align:center;cursor:pointer;transition:all .15s">
+                <div style="width:100%;height:28px;background:#141210;border-radius:4px;margin-bottom:6px;border:1px solid #2a2520"></div>
+                <div style="font-size:11px;font-weight:500;color:var(--text-2)">Dark</div>
+              </div>
+              <div id="theme-system" onclick="setTheme('system')" style="border:2px solid var(--border);border-radius:var(--r);padding:12px 8px;text-align:center;cursor:pointer;transition:all .15s">
+                <div style="width:100%;height:28px;background:linear-gradient(90deg,#F7F5F0 50%,#141210 50%);border-radius:4px;margin-bottom:6px;border:1px solid #ccc"></div>
+                <div style="font-size:11px;font-weight:500;color:var(--text-2)">System</div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="field-label" style="margin-bottom:10px">Sidebar Density</div>
+            <div style="display:flex;gap:8px">
+              <button id="density-comfortable" onclick="setDensity('comfortable')" class="btn btn-ghost btn-sm" style="flex:1;justify-content:center">Comfortable</button>
+              <button id="density-compact" onclick="setDensity('compact')" class="btn btn-ghost btn-sm" style="flex:1;justify-content:center">Compact</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Notifications -->
+        <div class="card">
+          <div class="card-title">Notifications</div>
+          <div class="card-sub">Choose what you're notified about.</div>
+          <div style="display:flex;flex-direction:column;gap:0">
+            ${[
+              ['notif-post-due',    'Post scheduled reminders',    'Get reminded before a post goes live'],
+              ['notif-post-fail',   'Failed post alerts',          'Notified if a scheduled post fails to publish'],
+              ['notif-weekly',      'Weekly performance summary',  'A digest of your top posts every Monday'],
+              ['notif-product',     'Product updates',             'New features and improvements to Flōw'],
+            ].map(([id, label, sub]) => `
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border-soft)">
+                <div>
+                  <div style="font-size:13px;font-weight:500;color:var(--text)">${label}</div>
+                  <div style="font-size:11px;color:var(--text-3);margin-top:2px">${sub}</div>
+                </div>
+                <label style="position:relative;display:inline-block;width:38px;height:22px;flex-shrink:0;margin-left:16px">
+                  <input type="checkbox" id="${id}" onchange="saveNotifPref('${id}',this.checked)" style="opacity:0;width:0;height:0;position:absolute">
+                  <span onclick="toggleSwitch('${id}')" style="position:absolute;inset:0;background:var(--border);border-radius:11px;cursor:pointer;transition:background .2s" id="sw-${id}">
+                    <span style="position:absolute;left:3px;bottom:3px;width:16px;height:16px;background:#fff;border-radius:50%;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)" id="sw-knob-${id}"></span>
+                  </span>
+                </label>
+              </div>`).join('')}
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0">
+              <div>
+                <div style="font-size:13px;font-weight:500;color:var(--text)">Marketing emails</div>
+                <div style="font-size:11px;color:var(--text-3);margin-top:2px">Tips, case studies, and best practices</div>
+              </div>
+              <label style="position:relative;display:inline-block;width:38px;height:22px;flex-shrink:0;margin-left:16px">
+                <input type="checkbox" id="notif-marketing" onchange="saveNotifPref('notif-marketing',this.checked)" style="opacity:0;width:0;height:0;position:absolute">
+                <span onclick="toggleSwitch('notif-marketing')" style="position:absolute;inset:0;background:var(--border);border-radius:11px;cursor:pointer;transition:background .2s" id="sw-notif-marketing">
+                  <span style="position:absolute;left:3px;bottom:3px;width:16px;height:16px;background:#fff;border-radius:50%;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)" id="sw-knob-notif-marketing"></span>
+                </span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Report a Crash / Error -->
+        <div class="card">
+          <div class="card-title">Report a Problem</div>
+          <div class="card-sub">Spotted a bug or something not working? Let us know.</div>
+          <div class="field-group" style="margin-bottom:12px">
+            <div class="field-label">Problem Type</div>
+            <select class="select" id="report-type" style="width:100%">
+              <option>Bug / Unexpected behaviour</option>
+              <option>App crash</option>
+              <option>Feature not working</option>
+              <option>Slow performance</option>
+              <option>Data not saving</option>
+              <option>AI feature issue</option>
+              <option>Platform connection issue</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="field-group" style="margin-bottom:12px">
+            <div class="field-label">Description</div>
+            <textarea class="textarea" id="report-desc" rows="3" placeholder="What happened? What were you trying to do? Include any error messages you saw."></textarea>
+          </div>
+          <div class="field-group" style="margin-bottom:16px">
+            <div class="field-label">Steps to Reproduce <span style="color:var(--text-4);font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></div>
+            <textarea class="textarea" id="report-steps" rows="2" placeholder="1. I clicked on... 2. Then I..."></textarea>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <button class="btn btn-primary btn-sm" onclick="submitReport()">Send Report</button>
+            <div style="font-size:11px;color:var(--text-3)">We'll follow up at your account email.</div>
+          </div>
+          <div id="report-msg" style="font-size:12px;margin-top:10px;display:none"></div>
+        </div>
+
+        <!-- Danger Zone -->
+        <div class="card" style="border-color:rgba(155,53,53,.2)">
+          <div class="card-title" style="color:var(--danger)">Danger Zone</div>
+          <div class="card-sub">Irreversible actions — proceed with care.</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border-soft)">
+            <div>
+              <div style="font-size:13px;font-weight:500;color:var(--text)">Export all data</div>
+              <div style="font-size:11px;color:var(--text-3)">Download a copy of all your posts, ideas, and contacts</div>
+            </div>
+            <button class="btn btn-ghost btn-sm" onclick="exportData()">Export</button>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0">
+            <div>
+              <div style="font-size:13px;font-weight:500;color:var(--danger)">Delete account</div>
+              <div style="font-size:11px;color:var(--text-3)">Permanently delete your account and all data</div>
+            </div>
+            <button class="btn btn-sm" style="border:1px solid rgba(155,53,53,.3);color:var(--danger);background:transparent" onclick="confirmDeleteAccount()">Delete</button>
+          </div>
+        </div>
+
+      </div><!-- /right col -->
+    </div>
+  </div><!-- /settings tab -->
+
+  </div><!-- /content -->
 
 </div><!-- /main -->
 </div><!-- /shell -->
+
+<!-- ══ SITE-WIDE FOOTER — always visible at bottom ══ -->
+<div style="position:fixed;bottom:0;left:232px;right:0;padding:9px 28px;border-top:1px solid var(--border-soft);display:flex;align-items:center;justify-content:center;gap:18px;background:var(--surface);z-index:50;flex-shrink:0">
+  <span style="font-size:11px;color:var(--text-4)">© 2026 Flōw</span>
+  <span style="color:var(--text-4);font-size:10px">·</span>
+  <a href="/privacy" target="_blank" style="font-size:11px;color:var(--text-4);text-decoration:none" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-4)'">Privacy Policy</a>
+  <span style="color:var(--text-4);font-size:10px">·</span>
+  <a href="/terms" target="_blank" style="font-size:11px;color:var(--text-4);text-decoration:none" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-4)'">Terms of Service</a>
+</div>
+
 </div><!-- /app-shell -->
 
 <script>
@@ -1065,8 +1317,8 @@ svg.chart { width: 100%; height: 180px; display: block; }
 //  SUPABASE CONFIG
 //  Replace these with your Supabase project values
 // ═══════════════════════════════════════════════
-const SUPABASE_URL = 'https://mlggtajkjchmdlkgiwll.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1sZ2d0YWpramNobWRsa2dpd2xsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQxMjA3NTQsImV4cCI6MjA4OTY5Njc1NH0.WGYkDG_COs16e16pS2Z1PBJsJxeKryL6hszkR_kVLj8';
+const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
 
 let sb = null;
 let currentUser = null;
@@ -1157,6 +1409,8 @@ function loadApp(user) {
   renderCalendar();
   loadAnalytics();
   loadConnections();
+  initTheme();
+  initDensity();
 }
 
 // ── TAB SWITCHING ──────────────────────────────
@@ -1165,7 +1419,7 @@ function switchTab(tab, el) {
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   document.getElementById('tab-'+tab).classList.add('active');
   if(el) el.classList.add('active');
-  const titles={dashboard:'Dashboard',composer:'Post Composer',queue:'Post Queue',calendar:'Content Calendar',ideas:'Idea Engine',proofread:'Proofread & Markup',analytics:'Analytics',connections:'Connected Accounts',pitchdeck:'Pitch Decks',rolodex:'Rolodex',algorithm:'Algorithm Guide'};
+  const titles={dashboard:'Dashboard',composer:'Post Composer',queue:'Post Queue',calendar:'Content Calendar',ideas:'Idea Engine',proofread:'Proofread & Markup',analytics:'Analytics',connections:'Connected Accounts',pitchdeck:'Pitch Decks',rolodex:'Rolodex',algorithm:'Algorithm Guide',settings:'Settings'};
   document.getElementById('topbar-title').textContent=titles[tab]||tab;
   if(tab==='queue') loadPostsFromAPI();
   if(tab==='calendar') renderCalendar();
@@ -1173,6 +1427,7 @@ function switchTab(tab, el) {
   if(tab==='connections') renderConnectionsTab();
   if(tab==='rolodex') renderContacts();
   if(tab==='algorithm') renderAlgoTab('ig');
+  if(tab==='settings') initSettings();
 }
 
 // ── PLATFORM TOGGLE ────────────────────────────
@@ -1585,8 +1840,192 @@ function calPrev() { calMonth--; if(calMonth<0){calMonth=11;calYear--;} renderCa
 function calNext() { calMonth++; if(calMonth>11){calMonth=0;calYear++;} renderCalendar(); }
 
 // ══════════════════════════════════════════════════════════
-//  ANALYTICS ENGINE
+//  SETTINGS
 // ══════════════════════════════════════════════════════════
+
+// ── THEME ─────────────────────────────────────────────────
+function initTheme() {
+  const saved = localStorage.getItem('flow_theme') || 'light';
+  applyTheme(saved, false);
+}
+
+function applyTheme(theme, save=true) {
+  const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+  if (save) localStorage.setItem('flow_theme', theme);
+  ['light','dark','system'].forEach(t => {
+    const el = document.getElementById('theme-' + t);
+    if (!el) return;
+    el.style.borderColor = t === theme ? 'var(--accent)' : 'var(--border)';
+    el.style.background  = t === theme ? 'var(--accent-light)' : '';
+  });
+}
+
+function setTheme(theme) { applyTheme(theme, true); toast('Theme: ' + theme + ' ✓'); }
+
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+  if (localStorage.getItem('flow_theme') === 'system') applyTheme('system', false);
+});
+
+// ── DENSITY ───────────────────────────────────────────────
+function initDensity() {
+  const saved = localStorage.getItem('flow_density') || 'comfortable';
+  applyDensity(saved, false);
+}
+
+function applyDensity(d, save=true) {
+  document.querySelectorAll('.nav-item').forEach(el => { el.style.paddingTop = d==='compact'?'5px':'8px'; el.style.paddingBottom = d==='compact'?'5px':'8px'; });
+  if (save) localStorage.setItem('flow_density', d);
+  ['comfortable','compact'].forEach(k => {
+    const el = document.getElementById('density-' + k);
+    if (!el) return;
+    el.className = k === d ? 'btn btn-primary btn-sm' : 'btn btn-ghost btn-sm';
+    el.style.flex = '1'; el.style.justifyContent = 'center';
+  });
+}
+
+function setDensity(d) { applyDensity(d); toast('Density updated ✓'); }
+
+// ── NOTIFICATIONS ─────────────────────────────────────────
+const NOTIF_IDS = ['notif-post-due','notif-post-fail','notif-weekly','notif-product','notif-marketing'];
+
+function loadNotifPrefs() {
+  NOTIF_IDS.forEach(id => {
+    const val = localStorage.getItem(id) !== 'false';
+    setSwitchState(id, val);
+  });
+}
+
+function toggleSwitch(id) {
+  const current = localStorage.getItem(id) !== 'false';
+  saveNotifPref(id, !current);
+}
+
+function saveNotifPref(id, val) {
+  localStorage.setItem(id, String(val));
+  setSwitchState(id, val);
+}
+
+function setSwitchState(id, on) {
+  const sw   = document.getElementById('sw-' + id);
+  const knob = document.getElementById('sw-knob-' + id);
+  if (!sw || !knob) return;
+  sw.style.background  = on ? 'var(--accent)' : 'var(--border)';
+  knob.style.transform = on ? 'translateX(16px)' : 'translateX(0)';
+}
+
+// ── INIT SETTINGS TAB ─────────────────────────────────────
+function initSettings() {
+  const name     = currentUser?.user_metadata?.full_name || currentUser?.email?.split('@')[0] || '';
+  const email    = currentUser?.email || '';
+  const initials = name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2) || '?';
+  const av = document.getElementById('settings-avatar'); if(av) av.textContent = initials;
+  const nd = document.getElementById('settings-name-display'); if(nd) nd.textContent = name;
+  const ed = document.getElementById('settings-email-display'); if(ed) ed.textContent = email;
+  const ni = document.getElementById('settings-name'); if(ni) ni.value = name;
+  applyTheme(localStorage.getItem('flow_theme')||'light', false);
+  applyDensity(localStorage.getItem('flow_density')||'comfortable', false);
+  loadNotifPrefs();
+}
+
+// ── PROFILE ───────────────────────────────────────────────
+async function saveProfile() {
+  const name  = document.getElementById('settings-name')?.value.trim();
+  const brand = document.getElementById('settings-brand')?.value.trim();
+  const msg   = document.getElementById('profile-msg');
+  if (!name) { showMsg(msg,'Name cannot be empty.','error'); return; }
+  if (!sb || isDemo) { showMsg(msg,'Profile saved (demo mode).','success'); return; }
+  try {
+    const { error } = await sb.auth.updateUser({ data: { full_name: name, brand_handle: brand } });
+    if (error) throw error;
+    document.getElementById('settings-name-display').textContent = name;
+    document.getElementById('user-name').textContent  = name;
+    const inits = name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+    document.getElementById('settings-avatar').textContent = inits;
+    document.getElementById('user-avatar').textContent     = inits;
+    showMsg(msg,'Profile updated ✓','success');
+    toast('Profile saved ✓');
+  } catch(e) { showMsg(msg,e.message,'error'); }
+}
+
+// ── EMAIL ─────────────────────────────────────────────────
+async function changeEmail() {
+  const newEmail = document.getElementById('settings-new-email')?.value.trim();
+  const msg = document.getElementById('email-msg');
+  if (!newEmail || !newEmail.includes('@')) { showMsg(msg,'Enter a valid email address.','error'); return; }
+  if (!sb || isDemo) { showMsg(msg,'Email updated (demo mode).','success'); return; }
+  try {
+    const { error } = await sb.auth.updateUser({ email: newEmail });
+    if (error) throw error;
+    showMsg(msg,'Confirmation sent to ' + newEmail + '. Click the link in the email to confirm.','success');
+    document.getElementById('settings-new-email').value = '';
+  } catch(e) { showMsg(msg,e.message,'error'); }
+}
+
+// ── PASSWORD ──────────────────────────────────────────────
+async function changePassword() {
+  const np  = document.getElementById('settings-new-pass')?.value;
+  const cp  = document.getElementById('settings-confirm-pass')?.value;
+  const msg = document.getElementById('pass-msg');
+  if (!np || np.length < 8) { showMsg(msg,'Password must be at least 8 characters.','error'); return; }
+  if (np !== cp) { showMsg(msg,'Passwords do not match.','error'); return; }
+  if (!sb || isDemo) { showMsg(msg,'Password updated (demo mode).','success'); return; }
+  try {
+    const { error } = await sb.auth.updateUser({ password: np });
+    if (error) throw error;
+    document.getElementById('settings-new-pass').value    = '';
+    document.getElementById('settings-confirm-pass').value = '';
+    showMsg(msg,'Password updated successfully ✓','success');
+    toast('Password changed ✓');
+  } catch(e) { showMsg(msg,e.message,'error'); }
+}
+
+// ── REPORT A PROBLEM ──────────────────────────────────────
+async function submitReport() {
+  const type  = document.getElementById('report-type')?.value;
+  const desc  = document.getElementById('report-desc')?.value.trim();
+  const steps = document.getElementById('report-steps')?.value.trim();
+  const msg   = document.getElementById('report-msg');
+  if (!desc) { showMsg(msg,'Please describe the problem before sending.','error'); return; }
+  const report = { type, desc, steps: steps||'—', user: currentUser?.email, ts: new Date().toISOString(), ua: navigator.userAgent };
+  console.info('[Flōw Bug Report]', report);
+  if (!isDemo && sb) {
+    try {
+      const headers = await getAuthHeaders();
+      await fetch('/api/ideas', { method:'POST', headers, body: JSON.stringify({ type:'Bug Report', title: type, description: `${desc}\n\nSteps: ${steps||'—'}\nTime: ${report.ts}\nBrowser: ${navigator.userAgent}`, tags:['__bug_report__'] }) });
+    } catch(e) {}
+  }
+  showMsg(msg,"Report sent — thank you! We'll follow up at your account email.",'success');
+  document.getElementById('report-desc').value  = '';
+  document.getElementById('report-steps').value = '';
+  toast('Report submitted ✓');
+}
+
+// ── EXPORT DATA ───────────────────────────────────────────
+function exportData() {
+  const data = { exported_at: new Date().toISOString(), user: currentUser?.email, posts: cachedPosts, contacts, saved_pitches: savedPitches };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type:'application/json' });
+  const a    = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: 'flow-export-' + new Date().toISOString().split('T')[0] + '.json' });
+  a.click(); URL.revokeObjectURL(a.href);
+  toast('Data exported ✓');
+}
+
+// ── DELETE ACCOUNT ────────────────────────────────────────
+function confirmDeleteAccount() {
+  if (!confirm('This will permanently delete your account and all your data. This cannot be undone.')) return;
+  const confirm2 = prompt('Type DELETE to confirm:');
+  if (confirm2 !== 'DELETE') { toast('Cancelled.'); return; }
+  doLogout();
+}
+
+// ── MSG HELPER ────────────────────────────────────────────
+function showMsg(el, text, type) {
+  if (!el) return;
+  const c = { success:'var(--success)', error:'var(--danger)', info:'var(--text-3)' };
+  el.style.color = c[type]||'var(--text-3)'; el.style.display='block'; el.textContent = text;
+  if (type==='success') setTimeout(()=>{ el.style.display='none'; }, 4000);
+}
+
 // ══════════════════════════════════════════════════════════
 //  ANALYTICS ENGINE  — pulls from /api/analytics
 // ══════════════════════════════════════════════════════════
