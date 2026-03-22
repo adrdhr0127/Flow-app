@@ -577,6 +577,29 @@ svg.chart { width: 100%; height: 180px; display: block; }
 
     <div class="auth-divider"><span>Demo mode available</span></div>
     <button class="auth-btn" style="background:var(--surface2);color:var(--text-2);border:1px solid var(--border);margin-top:0" onclick="demoLogin()">👀 Enter Demo Mode</button>
+
+    <div style="text-align:center;margin-top:24px;font-size:11px;color:var(--text-4)">
+      By signing up you agree to our
+      <a href="#" onclick="showLegal('privacy');return false;" style="color:var(--text-3);text-decoration:underline;text-underline-offset:2px;">Privacy Policy</a>
+      and
+      <a href="#" onclick="showLegal('terms');return false;" style="color:var(--text-3);text-decoration:underline;text-underline-offset:2px;">Terms of Service</a>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     LEGAL MODAL
+══════════════════════════════════════════ -->
+<div id="legal-modal" style="display:none;position:fixed;inset:0;background:rgba(28,25,23,.5);z-index:9999;overflow-y:auto;padding:40px 20px;">
+  <div style="max-width:680px;margin:0 auto;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-xl);box-shadow:var(--shadow-lg);overflow:hidden">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:22px 28px;border-bottom:1px solid var(--border)">
+      <div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-style:italic;color:var(--text)" id="legal-modal-title">Privacy Policy</div>
+      <button onclick="closeLegal()" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--text-3);padding:4px;border-radius:4px;line-height:1">×</button>
+    </div>
+    <div id="legal-modal-body" style="padding:28px;font-size:13px;line-height:1.85;color:var(--text-2);max-height:72vh;overflow-y:auto"></div>
+    <div style="padding:16px 28px;border-top:1px solid var(--border);text-align:right">
+      <button onclick="closeLegal()" class="btn btn-primary btn-sm">Close</button>
+    </div>
   </div>
 </div>
 
@@ -1027,6 +1050,17 @@ svg.chart { width: 100%; height: 180px; display: block; }
   </div>
 
   </div><!-- /content -->
+
+  <!-- App footer -->
+  <div style="padding:14px 28px;border-top:1px solid var(--border-soft);display:flex;align-items:center;justify-content:center;gap:20px;background:var(--surface);flex-shrink:0">
+    <span style="font-size:11px;color:var(--text-4)">© 2026 Fl&#333;w</span>
+    <span style="color:var(--border);font-size:11px">·</span>
+    <a href="#" onclick="showLegal('privacy');return false;" style="font-size:11px;color:var(--text-4);text-decoration:none" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-4)'">Privacy Policy</a>
+    <span style="color:var(--border);font-size:11px">·</span>
+    <a href="#" onclick="showLegal('terms');return false;" style="font-size:11px;color:var(--text-4);text-decoration:none" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-4)'">Terms of Service</a>
+  </div>
+
+</div><!-- /main -->
 </div><!-- /shell -->
 </div><!-- /app-shell -->
 
@@ -1035,8 +1069,8 @@ svg.chart { width: 100%; height: 180px; display: block; }
 //  SUPABASE CONFIG
 //  Replace these with your Supabase project values
 // ═══════════════════════════════════════════════
-const SUPABASE_URL = 'https://mlggtajkjchmdlkgiwll.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1sZ2d0YWpramNobWRsa2dpd2xsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQxMjA3NTQsImV4cCI6MjA4OTY5Njc1NH0.WGYkDG_COs16e16pS2Z1PBJsJxeKryL6hszkR_kVLj8';
+const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
 
 let sb = null;
 let currentUser = null;
@@ -2321,40 +2355,210 @@ Be specific and actionable.`;
 }
 
 function fmtNum(n) { return n>=1000?(n/1000).toFixed(1)+'k':String(n); }
+
+// ══════════════════════════════════════════════════════════
+//  LEGAL — Privacy Policy & Terms of Service
+// ══════════════════════════════════════════════════════════
+const LEGAL_CONTENT = {
+  privacy: {
+    title: 'Privacy Policy',
+    updated: 'Last updated: March 21, 2026',
+    body: `
+<h2 style="font-size:15px;font-weight:600;color:var(--text);margin:0 0 4px">1. Introduction</h2>
+<p>Flōw ("we," "our," or "us") is committed to protecting your personal information. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our social media management platform.</p>
+
+<h2 style="font-size:15px;font-weight:600;color:var(--text);margin:20px 0 4px">2. Information We Collect</h2>
+<p><strong style="color:var(--text)">Account Information:</strong> When you create an account, we collect your name, email address, and password (stored as an encrypted hash via Supabase Auth).</p>
+<p style="margin-top:8px"><strong style="color:var(--text)">Content You Create:</strong> Posts, captions, drafts, scheduled content, content ideas, pitch decks, and contacts you enter into the app.</p>
+<p style="margin-top:8px"><strong style="color:var(--text)">Platform Connections:</strong> When you connect social media accounts, we store access tokens and basic profile information (username, platform ID) required to authenticate with those platforms. We never store your passwords for third-party platforms.</p>
+<p style="margin-top:8px"><strong style="color:var(--text)">Usage Data:</strong> We may collect anonymized information about how you interact with the app (pages visited, features used) to improve the product.</p>
+
+<h2 style="font-size:15px;font-weight:600;color:var(--text);margin:20px 0 4px">3. How We Use Your Information</h2>
+<p>We use your information to:</p>
+<ul style="padding-left:20px;margin-top:6px;line-height:2">
+  <li>Provide and maintain the Flōw platform</li>
+  <li>Authenticate you and secure your account</li>
+  <li>Save your content, schedules, and settings across sessions</li>
+  <li>Connect to social media APIs on your behalf</li>
+  <li>Generate AI-powered content using the Anthropic Claude API (your prompts are sent to Anthropic — see Section 5)</li>
+  <li>Send transactional emails (account confirmation, password reset)</li>
+  <li>Improve and develop our services</li>
+</ul>
+
+<h2 style="font-size:15px;font-weight:600;color:var(--text);margin:20px 0 4px">4. Data Storage & Security</h2>
+<p>Your data is stored on <strong style="color:var(--text)">Supabase</strong> infrastructure, which uses PostgreSQL databases with row-level security — meaning your data is cryptographically scoped to your account only. No other user can access your data.</p>
+<p style="margin-top:8px">We implement industry-standard security practices including encrypted connections (TLS), hashed passwords, and secure token storage. However, no method of transmission over the internet is 100% secure.</p>
+
+<h2 style="font-size:15px;font-weight:600;color:var(--text);margin:20px 0 4px">5. Third-Party Services</h2>
+<p>Flōw integrates with the following third-party services:</p>
+<ul style="padding-left:20px;margin-top:6px;line-height:2">
+  <li><strong style="color:var(--text)">Anthropic (Claude API):</strong> Your AI prompts (captions, ideas, proofread requests, pitch decks) are sent to Anthropic for processing. Anthropic's <a href="https://www.anthropic.com/privacy" target="_blank" style="color:var(--accent)">Privacy Policy</a> applies.</li>
+  <li><strong style="color:var(--text)">Supabase:</strong> Database, authentication, and file storage. <a href="https://supabase.com/privacy" target="_blank" style="color:var(--accent)">Supabase Privacy Policy</a>.</li>
+  <li><strong style="color:var(--text)">Vercel:</strong> Hosting and serverless functions. <a href="https://vercel.com/legal/privacy-policy" target="_blank" style="color:var(--accent)">Vercel Privacy Policy</a>.</li>
+  <li><strong style="color:var(--text)">Social Media Platforms:</strong> When connected, Instagram, Facebook, Twitter/X, YouTube, LinkedIn, TikTok, and Snapchat APIs are used. Each platform's own privacy policy governs their data handling.</li>
+</ul>
+
+<h2 style="font-size:15px;font-weight:600;color:var(--text);margin:20px 0 4px">6. Data Sharing</h2>
+<p>We do <strong style="color:var(--text)">not</strong> sell, trade, or rent your personal information to third parties. We do not share your data except:</p>
+<ul style="padding-left:20px;margin-top:6px;line-height:2">
+  <li>With service providers listed above who help operate the platform</li>
+  <li>If required by law or legal process</li>
+  <li>To protect our rights or prevent fraud</li>
+</ul>
+
+<h2 style="font-size:15px;font-weight:600;color:var(--text);margin:20px 0 4px">7. Your Rights</h2>
+<p>You have the right to:</p>
+<ul style="padding-left:20px;margin-top:6px;line-height:2">
+  <li><strong style="color:var(--text)">Access:</strong> Request a copy of all data we hold about you</li>
+  <li><strong style="color:var(--text)">Correction:</strong> Update inaccurate information</li>
+  <li><strong style="color:var(--text)">Deletion:</strong> Request deletion of your account and all associated data</li>
+  <li><strong style="color:var(--text)">Portability:</strong> Export your content and data</li>
+  <li><strong style="color:var(--text)">Disconnect:</strong> Revoke social media platform connections at any time</li>
+</ul>
+<p style="margin-top:8px">To exercise any of these rights, contact us at the email below.</p>
+
+<h2 style="font-size:15px;font-weight:600;color:var(--text);margin:20px 0 4px">8. Cookies</h2>
+<p>Flōw uses only essential cookies necessary for authentication (session tokens). We do not use advertising cookies or third-party tracking cookies.</p>
+
+<h2 style="font-size:15px;font-weight:600;color:var(--text);margin:20px 0 4px">9. Children's Privacy</h2>
+<p>Flōw is not directed to children under 13. We do not knowingly collect personal information from children under 13. If you believe we have inadvertently collected such information, please contact us immediately.</p>
+
+<h2 style="font-size:15px;font-weight:600;color:var(--text);margin:20px 0 4px">10. Changes to This Policy</h2>
+<p>We may update this Privacy Policy from time to time. We will notify you of significant changes by email or by displaying a prominent notice in the app. Continued use of Flōw after changes constitutes acceptance of the updated policy.</p>
+
+<h2 style="font-size:15px;font-weight:600;color:var(--text);margin:20px 0 4px">11. Contact</h2>
+<p>For privacy-related questions or to exercise your rights, contact us at: <a href="mailto:privacy@flowhq.app" style="color:var(--accent)">privacy@flowhq.app</a></p>
+    `
+  },
+
+  terms: {
+    title: 'Terms of Service',
+    updated: 'Last updated: March 21, 2026',
+    body: `
+<h2 style="font-size:15px;font-weight:600;color:var(--text);margin:0 0 4px">1. Acceptance of Terms</h2>
+<p>By accessing or using Flōw ("the Service"), you agree to be bound by these Terms of Service. If you do not agree, do not use the Service. These Terms apply to all users, including free and paid accounts.</p>
+
+<h2 style="font-size:15px;font-weight:600;color:var(--text);margin:20px 0 4px">2. Description of Service</h2>
+<p>Flōw is a social media management platform that allows you to compose, schedule, and manage content across multiple social media platforms, generate AI-assisted content, track analytics, manage contacts, and create pitch decks. The Service is provided "as is" and may evolve over time.</p>
+
+<h2 style="font-size:15px;font-weight:600;color:var(--text);margin:20px 0 4px">3. Eligibility</h2>
+<p>You must be at least 13 years old to use Flōw. By using the Service, you represent that you are of legal age in your jurisdiction to form a binding agreement with us.</p>
+
+<h2 style="font-size:15px;font-weight:600;color:var(--text);margin:20px 0 4px">4. Your Account</h2>
+<p>You are responsible for maintaining the confidentiality of your account credentials and for all activity that occurs under your account. You agree to:</p>
+<ul style="padding-left:20px;margin-top:6px;line-height:2">
+  <li>Provide accurate and complete information when creating your account</li>
+  <li>Notify us immediately of any unauthorized use of your account</li>
+  <li>Not share your account with others or allow others to access it</li>
+  <li>Maintain only one account per person</li>
+</ul>
+
+<h2 style="font-size:15px;font-weight:600;color:var(--text);margin:20px 0 4px">5. Acceptable Use</h2>
+<p>You agree not to use Flōw to:</p>
+<ul style="padding-left:20px;margin-top:6px;line-height:2">
+  <li>Post, schedule, or generate content that is illegal, harmful, threatening, abusive, harassing, defamatory, or otherwise objectionable</li>
+  <li>Infringe on the intellectual property rights of others</li>
+  <li>Spam, phish, or engage in any deceptive practices</li>
+  <li>Circumvent or violate the terms of service of any connected social media platform</li>
+  <li>Attempt to reverse-engineer, hack, or disrupt the Service</li>
+  <li>Use automated means to access the Service except through our provided APIs</li>
+  <li>Impersonate any person or entity</li>
+  <li>Collect or harvest data from other users</li>
+</ul>
+
+<h2 style="font-size:15px;font-weight:600;color:var(--text);margin:20px 0 4px">6. Content Ownership</h2>
+<p><strong style="color:var(--text)">Your Content:</strong> You retain full ownership of all content you create, upload, or schedule through Flōw. By using the Service, you grant us a limited, non-exclusive license to store and process your content solely to provide the Service.</p>
+<p style="margin-top:8px"><strong style="color:var(--text)">AI-Generated Content:</strong> Content generated with the assistance of our AI features is provided for your use. You are responsible for reviewing, editing, and ensuring AI-generated content complies with applicable laws and platform policies before publishing.</p>
+<p style="margin-top:8px"><strong style="color:var(--text)">Flōw's Content:</strong> The Flōw platform, including its design, code, and features, is owned by us and protected by intellectual property laws. You may not copy or reproduce it without permission.</p>
+
+<h2 style="font-size:15px;font-weight:600;color:var(--text);margin:20px 0 4px">7. Third-Party Platform Compliance</h2>
+<p>When connecting social media accounts, you agree to comply with the terms of service of each respective platform (Instagram, Facebook, Twitter/X, YouTube, LinkedIn, TikTok, Snapchat). Flōw is not responsible for actions taken by those platforms, including account suspension or content removal.</p>
+
+<h2 style="font-size:15px;font-weight:600;color:var(--text);margin:20px 0 4px">8. API Usage & Costs</h2>
+<p>Certain features (AI caption generation, idea generation, proofreading, pitch decks) use the Anthropic Claude API. Usage costs are covered by your configured API key. You are responsible for monitoring and managing your Anthropic API usage and any associated costs.</p>
+
+<h2 style="font-size:15px;font-weight:600;color:var(--text);margin:20px 0 4px">9. Disclaimers</h2>
+<p>THE SERVICE IS PROVIDED "AS IS" WITHOUT WARRANTIES OF ANY KIND, EXPRESS OR IMPLIED. WE DO NOT WARRANT THAT THE SERVICE WILL BE UNINTERRUPTED, ERROR-FREE, OR COMPLETELY SECURE. AI-GENERATED CONTENT IS PROVIDED WITHOUT GUARANTEE OF ACCURACY, LEGALITY, OR FITNESS FOR ANY PARTICULAR PURPOSE.</p>
+
+<h2 style="font-size:15px;font-weight:600;color:var(--text);margin:20px 0 4px">10. Limitation of Liability</h2>
+<p>TO THE MAXIMUM EXTENT PERMITTED BY LAW, FLŌW SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES ARISING FROM YOUR USE OF THE SERVICE, INCLUDING BUT NOT LIMITED TO LOSS OF DATA, REVENUE, OR BUSINESS OPPORTUNITIES.</p>
+
+<h2 style="font-size:15px;font-weight:600;color:var(--text);margin:20px 0 4px">11. Termination</h2>
+<p>We reserve the right to suspend or terminate your account at any time for violation of these Terms. You may delete your account at any time from within the app. Upon termination, your data will be deleted within 30 days unless otherwise required by law.</p>
+
+<h2 style="font-size:15px;font-weight:600;color:var(--text);margin:20px 0 4px">12. Changes to Terms</h2>
+<p>We may update these Terms at any time. We will notify you of material changes via email or in-app notice at least 14 days before they take effect. Continued use of the Service after changes constitutes acceptance.</p>
+
+<h2 style="font-size:15px;font-weight:600;color:var(--text);margin:20px 0 4px">13. Governing Law</h2>
+<p>These Terms shall be governed by the laws of the State of Florida, United States, without regard to its conflict of law provisions.</p>
+
+<h2 style="font-size:15px;font-weight:600;color:var(--text);margin:20px 0 4px">14. Contact</h2>
+<p>For questions about these Terms, contact us at: <a href="mailto:legal@flowhq.app" style="color:var(--accent)">legal@flowhq.app</a></p>
+    `
+  }
+};
+
+function showLegal(type) {
+  const data = LEGAL_CONTENT[type];
+  if (!data) return;
+  document.getElementById('legal-modal-title').textContent = data.title;
+  document.getElementById('legal-modal-body').innerHTML = `
+    <p style="font-size:11px;color:var(--text-4);margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid var(--border-soft)">${data.updated}</p>
+    ${data.body}
+  `;
+  document.getElementById('legal-modal').style.display = 'block';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeLegal() {
+  document.getElementById('legal-modal').style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+// Close on backdrop click
+document.addEventListener('click', function(e) {
+  const modal = document.getElementById('legal-modal');
+  if (e.target === modal) closeLegal();
+});
+
+// Close on Escape key
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeLegal();
+});
 // ══════════════════════════════════════════════════════════
 const PLATFORMS = [
-  { key:'ig',  name:'Instagram',  icon:'📸', color:'var(--ig)',  bg:'rgba(225,48,108,.12)',
-    oauth: false, oauthLabel:'Connect with Meta',
+  { key:'ig',  name:'Instagram',  icon:'📸', color:'var(--ig)',  bg:'rgba(193,53,132,.1)',
+    oauth: true,  oauthLabel:'Connect with Meta',
     manualLabel:'Access Token', manualHint:'From Meta Graph API Explorer',
     reviewTime:'1–2 weeks', reviewDiff:'medium',
     devUrl:'https://developers.facebook.com' },
-  { key:'tw',  name:'X / Twitter',icon:'𝕏',  color:'var(--tw)', bg:'rgba(29,161,242,.12)',
+  { key:'tw',  name:'X / Twitter',icon:'𝕏',  color:'var(--tw)', bg:'rgba(29,155,240,.1)',
     oauth: true,  oauthLabel:'Connect with X',
     manualLabel:'Bearer Token', manualHint:'From developer.twitter.com',
     reviewTime:'Instant',    reviewDiff:'instant',
     devUrl:'https://developer.twitter.com/en/portal/dashboard' },
-  { key:'yt',  name:'YouTube',    icon:'▷', color:'var(--yt)', bg:'rgba(255,0,0,.12)',
+  { key:'yt',  name:'YouTube',    icon:'▷', color:'var(--yt)', bg:'rgba(255,0,0,.1)',
     oauth: true,  oauthLabel:'Connect with Google',
     manualLabel:'API Key', manualHint:'From Google Cloud Console',
     reviewTime:'1–3 days',   reviewDiff:'easy',
     devUrl:'https://console.cloud.google.com' },
-  { key:'tk',  name:'TikTok',     icon:'▶', color:'var(--tk)', bg:'rgba(255,0,80,.12)',
-    oauth: false, oauthLabel:'Connect with TikTok',
+  { key:'tk',  name:'TikTok',     icon:'▶', color:'var(--tk)', bg:'rgba(238,29,82,.1)',
+    oauth: true,  oauthLabel:'Connect with TikTok',
     manualLabel:'Access Token', manualHint:'From TikTok for Developers',
     reviewTime:'2–4 weeks',  reviewDiff:'hard',
     devUrl:'https://developers.tiktok.com' },
-  { key:'li',  name:'LinkedIn',   icon:'in', color:'var(--li)', bg:'rgba(10,102,194,.12)',
-    oauth: false, oauthLabel:'Connect with LinkedIn',
+  { key:'li',  name:'LinkedIn',   icon:'in', color:'var(--li)', bg:'rgba(10,102,194,.1)',
+    oauth: true,  oauthLabel:'Connect with LinkedIn',
     manualLabel:'Access Token', manualHint:'From LinkedIn Developer Portal',
     reviewTime:'1–2 weeks',  reviewDiff:'medium',
     devUrl:'https://www.linkedin.com/developers' },
-  { key:'fb',  name:'Facebook',   icon:'f',  color:'var(--fb)', bg:'rgba(24,119,242,.12)',
-    oauth: false, oauthLabel:'Connect with Meta',
+  { key:'fb',  name:'Facebook',   icon:'f',  color:'var(--fb)', bg:'rgba(24,119,242,.1)',
+    oauth: true,  oauthLabel:'Connect with Meta',
     manualLabel:'Page Access Token', manualHint:'From Meta Graph API Explorer',
     reviewTime:'1–2 weeks',  reviewDiff:'medium',
     devUrl:'https://developers.facebook.com' },
-  { key:'sc',  name:'Snapchat',   icon:'👻', color:'#c8c800',  bg:'rgba(255,252,0,.08)',
-    oauth: false, oauthLabel:'Connect with Snapchat',
+  { key:'sc',  name:'Snapchat',   icon:'👻', color:'#C8A000',  bg:'rgba(255,202,40,.1)',
+    oauth: true,  oauthLabel:'Connect with Snapchat',
     manualLabel:'Access Token', manualHint:'From Snapchat for Developers',
     reviewTime:'2–4 weeks',  reviewDiff:'hard',
     devUrl:'https://kit.snapchat.com' },
@@ -2490,9 +2694,14 @@ function oauthConnect(key) {
   const oauthUrls = {
     tw: '/api/auth/twitter',
     yt: '/api/auth/youtube',
+    ig: '/api/auth/instagram',
+    li: '/api/auth/linkedin',
+    tk: '/api/auth/tiktok',
+    fb: '/api/auth/instagram',   // Facebook uses same Meta app
+    sc: '/api/auth/snapchat',
   };
   const url = oauthUrls[key];
-  if (!url) { toast('OAuth not yet configured for ' + p?.name, 'error'); return; }
+  if (!url) { toast('OAuth not available for ' + (p?.name||key), 'error'); return; }
   // Open OAuth popup
   const w = window.open(url + '?user_id=' + currentUser?.id, 'oauth_popup',
     'width=600,height=700,scrollbars=yes,resizable=yes');
