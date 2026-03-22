@@ -942,7 +942,7 @@ svg.chart { width: 100%; height: 180px; display: block; }
         <!-- populated by JS -->
       </div>
 
-      <div style="margin-top:16px;padding:12px;background:rgba(160,113,79,.04);border:1px solid rgba(0,229,255,.12);border-radius:8px;font-size:12px;color:var(--text-2);line-height:1.6">
+      <div style="margin-top:16px;padding:12px;background:rgba(160,113,79,.04);border:1px solid rgba(160,113,79,.15);border-radius:8px;font-size:12px;color:var(--text-2);line-height:1.6">
         <strong style="color:var(--accent)">Where to get your tokens:</strong><br>
         Instagram/Facebook → <a href="https://developers.facebook.com/tools/explorer" target="_blank" style="color:var(--accent)">Meta Graph API Explorer</a> &nbsp;·&nbsp;
         Twitter → <a href="https://developer.twitter.com/en/portal/dashboard" target="_blank" style="color:var(--tw)">developer.twitter.com</a> &nbsp;·&nbsp;
@@ -950,13 +950,9 @@ svg.chart { width: 100%; height: 180px; display: block; }
       </div>
     </div>
 
-    <!-- OAuth status / approval guide -->
-    <div class="card" style="margin-top:14px">
-      <div class="card-title">OAuth App Review Status</div>
-      <div class="card-sub">Submit your app to each platform to enable one-click login for your users.</div>
-      <div id="review-status-list">
-        <!-- populated by JS -->
-      </div>
+    <!-- Admin-only: OAuth App Review Status / Everyone else: Token guides -->
+    <div class="card" style="margin-top:14px" id="connections-bottom-card">
+      <!-- populated by renderConnectionsBottom() -->
     </div>
 
   </div><!-- /connections tab -->
@@ -1069,8 +1065,8 @@ svg.chart { width: 100%; height: 180px; display: block; }
 //  SUPABASE CONFIG
 //  Replace these with your Supabase project values
 // ═══════════════════════════════════════════════
-const SUPABASE_URL = 'https://mlggtajkjchmdlkgiwll.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1sZ2d0YWpramNobWRsa2dpd2xsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQxMjA3NTQsImV4cCI6MjA4OTY5Njc1NH0.WGYkDG_COs16e16pS2Z1PBJsJxeKryL6hszkR_kVLj8';
+const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
 
 let sb = null;
 let currentUser = null;
@@ -2593,7 +2589,7 @@ function updateSidebarDots() {
 function renderConnectionsTab() {
   renderConnectionsGrid();
   renderManualTokens();
-  renderReviewStatus();
+  renderConnectionsBottom();
 }
 
 function renderConnectionsGrid() {
@@ -2650,21 +2646,200 @@ function renderManualTokens() {
     </div>`).join('');
 }
 
-function renderReviewStatus() {
-  const list = document.getElementById('review-status-list');
-  if (!list) return;
-  const diffMap = { instant:'rb-instant', easy:'rb-easy', medium:'rb-medium', hard:'rb-hard' };
+function renderReviewStatus() { renderConnectionsBottom(); } // legacy alias
+
+// ── ADMIN EMAIL — only this user sees the OAuth Review Status ──────────────
+const ADMIN_EMAIL = 'adriandharry@gmail.com';
+
+function isAdmin() {
+  return currentUser?.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+}
+
+function renderConnectionsBottom() {
+  const card = document.getElementById('connections-bottom-card');
+  if (!card) return;
+  if (isAdmin()) {
+    renderAdminReviewStatus(card);
+  } else {
+    renderTokenGuides(card);
+  }
+}
+
+// ── ADMIN VIEW: OAuth app review status ────────────────────────────────────
+function renderAdminReviewStatus(card) {
+  const diffMap   = { instant:'rb-instant', easy:'rb-easy', medium:'rb-medium', hard:'rb-hard' };
   const diffLabel = { instant:'Instant', easy:'Easy', medium:'Medium', hard:'Hard' };
-  list.innerHTML = PLATFORMS.map(p => `
-    <div class="review-row">
-      <div style="font-size:18px;width:28px;text-align:center">${p.icon}</div>
-      <div style="flex:1">
-        <div style="font-size:13px;font-weight:600;color:var(--text)">${p.name}</div>
-        <div style="font-size:11px;color:var(--text-2);margin-top:2px">Review time: ${p.reviewTime}</div>
-      </div>
-      <span class="review-badge ${diffMap[p.reviewDiff]}">${diffLabel[p.reviewDiff]}</span>
-      <a href="${p.devUrl}" target="_blank" class="btn btn-ghost btn-sm" style="font-size:11px;text-decoration:none">Apply →</a>
-    </div>`).join('');
+  card.innerHTML = `
+    <div class="card-title">OAuth App Review Status</div>
+    <div class="card-sub">Submit your app to each platform to enable one-click login for users.</div>
+    <div id="review-status-list">
+      ${PLATFORMS.map(p => `
+        <div class="review-row">
+          <div style="font-size:16px;width:26px;text-align:center">${p.icon}</div>
+          <div style="flex:1">
+            <div style="font-size:13px;font-weight:600;color:var(--text)">${p.name}</div>
+            <div style="font-size:11px;color:var(--text-2);margin-top:2px">Estimated review time: ${p.reviewTime}</div>
+          </div>
+          <span class="review-badge ${diffMap[p.reviewDiff]}">${diffLabel[p.reviewDiff]}</span>
+          <a href="${p.devUrl}" target="_blank" class="btn btn-ghost btn-sm" style="font-size:11px;text-decoration:none">Apply →</a>
+        </div>`).join('')}
+    </div>`;
+}
+
+// ── USER VIEW: How to find your API tokens for each platform ───────────────
+const TOKEN_GUIDES = [
+  {
+    key: 'ig', icon: '📸', name: 'Instagram', color: 'var(--ig)',
+    bg: 'rgba(193,53,132,.07)',
+    steps: [
+      'Go to <a href="https://developers.facebook.com" target="_blank">developers.facebook.com</a> and log in with your Facebook account',
+      'Click <strong>My Apps</strong> → <strong>Create App</strong> → choose <strong>Other</strong> → <strong>Consumer</strong>',
+      'From your app dashboard, click <strong>Add Product</strong> → find <strong>Instagram Graph API</strong> → click Set Up',
+      'Go to <strong>Tools</strong> → <strong>Graph API Explorer</strong> in the left menu',
+      'Select your app from the dropdown, then click <strong>Generate Access Token</strong>',
+      'Grant the permissions requested — copy the token and paste it above',
+    ],
+    note: 'Long-lived tokens last 60 days. You\'ll need to refresh periodically.',
+    url: 'https://developers.facebook.com/tools/explorer',
+    urlLabel: 'Open Graph API Explorer',
+  },
+  {
+    key: 'tw', icon: '𝕏', name: 'X / Twitter', color: 'var(--tw)',
+    bg: 'rgba(29,155,240,.07)',
+    steps: [
+      'Go to <a href="https://developer.twitter.com/en/portal/dashboard" target="_blank">developer.twitter.com</a> and sign in',
+      'Click <strong>Sign up for Free Account</strong> if you don\'t have developer access yet — approval is usually instant',
+      'Click <strong>+ Create Project</strong>, give it a name, and create an App inside it',
+      'Go to your App → <strong>Keys and Tokens</strong> tab',
+      'Under <strong>Authentication Tokens</strong>, click <strong>Generate</strong> next to Bearer Token',
+      'Copy the Bearer Token and paste it above',
+    ],
+    note: 'Bearer Tokens don\'t expire but can be regenerated at any time.',
+    url: 'https://developer.twitter.com/en/portal/dashboard',
+    urlLabel: 'Open Twitter Developer Portal',
+  },
+  {
+    key: 'yt', icon: '▷', name: 'YouTube', color: 'var(--yt)',
+    bg: 'rgba(255,0,0,.07)',
+    steps: [
+      'Go to <a href="https://console.cloud.google.com" target="_blank">console.cloud.google.com</a> and sign in with your Google account',
+      'Click <strong>New Project</strong>, give it a name, and click Create',
+      'In the left menu go to <strong>APIs & Services</strong> → <strong>Library</strong>',
+      'Search for <strong>YouTube Data API v3</strong> and click <strong>Enable</strong>',
+      'Go to <strong>APIs & Services</strong> → <strong>Credentials</strong> → <strong>Create Credentials</strong> → <strong>API Key</strong>',
+      'Copy the API Key that appears and paste it above',
+    ],
+    note: 'For full analytics access, you\'ll eventually need OAuth — but an API key works for basic channel data.',
+    url: 'https://console.cloud.google.com/apis/credentials',
+    urlLabel: 'Open Google Cloud Credentials',
+  },
+  {
+    key: 'tk', icon: '▶', name: 'TikTok', color: 'var(--tk)',
+    bg: 'rgba(238,29,82,.07)',
+    steps: [
+      'Go to <a href="https://developers.tiktok.com" target="_blank">developers.tiktok.com</a> and log in with your TikTok account',
+      'Click <strong>Manage Apps</strong> → <strong>Connect an app</strong>',
+      'Fill in your app name and description — select <strong>Login Kit</strong> as the product',
+      'Under your app, go to <strong>Credentials</strong> and copy your <strong>Client Key</strong>',
+      'Paste the Client Key above as your access token to get started',
+    ],
+    note: 'Full API access requires app review by TikTok (2–4 weeks). The Client Key works for basic profile data immediately.',
+    url: 'https://developers.tiktok.com',
+    urlLabel: 'Open TikTok for Developers',
+  },
+  {
+    key: 'li', icon: 'in', name: 'LinkedIn', color: 'var(--li)',
+    bg: 'rgba(10,102,194,.07)',
+    steps: [
+      'Go to <a href="https://www.linkedin.com/developers/apps/new" target="_blank">linkedin.com/developers</a> and sign in',
+      'Click <strong>Create App</strong> — you\'ll need to associate it with a LinkedIn Company Page',
+      'Fill in your app name, logo, and select your company page',
+      'Once created, go to the <strong>Auth</strong> tab',
+      'Under <strong>OAuth 2.0 tools</strong> click <strong>Request access token</strong>',
+      'Select the scopes you need and generate — copy the token and paste it above',
+    ],
+    note: 'LinkedIn tokens expire after 60 days. Some analytics permissions require app review.',
+    url: 'https://www.linkedin.com/developers/apps',
+    urlLabel: 'Open LinkedIn Developer Portal',
+  },
+  {
+    key: 'fb', icon: 'f', name: 'Facebook', color: 'var(--fb)',
+    bg: 'rgba(24,119,242,.07)',
+    steps: [
+      'Go to <a href="https://developers.facebook.com" target="_blank">developers.facebook.com</a> and log in',
+      'Click <strong>My Apps</strong> → <strong>Create App</strong> → choose <strong>Business</strong>',
+      'From your app dashboard, add the <strong>Facebook Login</strong> product',
+      'Go to <strong>Tools</strong> → <strong>Graph API Explorer</strong>',
+      'Select your app, then click <strong>Generate Access Token</strong>',
+      'From the permissions list, add <strong>pages_show_list</strong> and <strong>pages_read_engagement</strong>, then generate',
+      'Copy the token and paste it above',
+    ],
+    note: 'Use a Page Access Token (not a User token) for best results with business pages.',
+    url: 'https://developers.facebook.com/tools/explorer',
+    urlLabel: 'Open Meta Graph API Explorer',
+  },
+  {
+    key: 'sc', icon: '👻', name: 'Snapchat', color: '#c8a000',
+    bg: 'rgba(255,202,40,.08)',
+    steps: [
+      'Go to <a href="https://kit.snapchat.com/manage" target="_blank">kit.snapchat.com</a> and sign in with your Snapchat account',
+      'Click <strong>New App</strong> and fill in your app details',
+      'Add <strong>Login Kit</strong> as a product',
+      'Go to your app\'s <strong>Credentials</strong> section',
+      'Copy your <strong>OAuth2 Client ID</strong> and paste it above',
+    ],
+    note: 'Full analytics access requires account verification. The Client ID works for basic profile data and story viewing.',
+    url: 'https://kit.snapchat.com/manage',
+    urlLabel: 'Open Snap Kit Dashboard',
+  },
+];
+
+function renderTokenGuides(card) {
+  // Start with collapsed accordion — user expands the platform they need
+  card.innerHTML = `
+    <div class="card-title">How to Find Your API Tokens</div>
+    <div class="card-sub" style="margin-bottom:14px">Step-by-step instructions for each platform. Click any platform to expand.</div>
+    <div id="token-guides-list">
+      ${TOKEN_GUIDES.map((g, i) => `
+        <div style="border:1px solid var(--border);border-radius:var(--r);margin-bottom:6px;overflow:hidden;transition:border-color .15s" id="guide-wrap-${g.key}">
+
+          <!-- Header / toggle -->
+          <div onclick="toggleGuide('${g.key}')" style="display:flex;align-items:center;gap:12px;padding:13px 16px;cursor:pointer;background:${g.bg};transition:opacity .14s" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+            <div style="font-size:17px;width:24px;text-align:center">${g.icon}</div>
+            <div style="flex:1;font-size:13px;font-weight:600;color:var(--text)">${g.name}</div>
+            <div style="font-size:11px;color:var(--text-3);margin-right:6px" id="guide-status-${g.key}">
+              ${connections[g.key]?.connected ? '<span style="color:var(--success)">✓ Connected</span>' : 'Not connected'}
+            </div>
+            <svg id="guide-chevron-${g.key}" width="14" height="14" viewBox="0 0 14 14" fill="none" style="transition:transform .2s;flex-shrink:0"><path d="M3 5l4 4 4-4" stroke="var(--text-3)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+
+          <!-- Body (collapsed by default) -->
+          <div id="guide-body-${g.key}" style="display:none;padding:18px 18px 16px;border-top:1px solid var(--border-soft)">
+
+            <ol style="padding-left:20px;margin-bottom:16px">
+              ${g.steps.map(s => `<li style="font-size:13px;color:var(--text-2);line-height:1.7;margin-bottom:6px">${s}</li>`).join('')}
+            </ol>
+
+            ${g.note ? `<div style="background:var(--warn-bg);border:1px solid rgba(176,124,38,.2);border-radius:var(--r-sm);padding:10px 13px;font-size:12px;color:var(--text-2);margin-bottom:14px">
+              <strong style="color:var(--warn)">Note:</strong> ${escapeHtml(g.note)}
+            </div>` : ''}
+
+            <a href="${g.url}" target="_blank" class="btn btn-ghost btn-sm" style="text-decoration:none;font-size:12px">
+              ↗ ${g.urlLabel}
+            </a>
+
+          </div>
+        </div>`).join('')}
+    </div>`;
+}
+
+function toggleGuide(key) {
+  const body    = document.getElementById('guide-body-' + key);
+  const chevron = document.getElementById('guide-chevron-' + key);
+  if (!body) return;
+  const isOpen = body.style.display !== 'none';
+  body.style.display    = isOpen ? 'none' : 'block';
+  chevron.style.transform = isOpen ? '' : 'rotate(180deg)';
 }
 
 async function saveManualToken(key) {
