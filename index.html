@@ -5,260 +5,277 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>FLŌW — Social Media Organizer</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,700;1,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;450;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg:#090b0f; --surface:#0f1318; --surface2:#161b23; --surface3:#1e252f;
-  --border:#232b37; --accent:#00e5ff; --accent2:#ff3cac; --accent3:#ffd600;
-  --text:#e8edf3; --muted:#5a6a7e; --muted2:#8a9ab0;
-  --ig:#e1306c; --tw:#1da1f2; --tk:#ff0050; --li:#0a66c2; --fb:#1877f2; --yt:#ff0000;
-  --success:#00c896; --warn:#ffb300; --danger:#ff4444;
+  --bg:#0e0f11; --surface:#16181c; --surface2:#1c1f25; --surface3:#22262e;
+  --border:#2a2f3a; --border-light:#333848;
+  --accent:#7c6af7; --accent-dim:rgba(124,106,247,.12); --accent-glow:rgba(124,106,247,.25);
+  --accent2:#f472b6; --accent3:#fbbf24;
+  --text:#f0f2f5; --text-secondary:#9aa3b2; --text-muted:#5c6475;
+  --ig:#e1306c; --tw:#1d9bf0; --tk:#ff0050; --li:#0a66c2; --fb:#1877f2; --yt:#ff0000; --sc:#fffc00;
+  --success:#34d399; --warn:#fbbf24; --danger:#f87171;
+  --radius:10px; --radius-lg:14px; --radius-sm:7px;
+  --shadow:0 1px 3px rgba(0,0,0,.3),0 4px 16px rgba(0,0,0,.2);
+  --shadow-lg:0 4px 24px rgba(0,0,0,.4),0 1px 3px rgba(0,0,0,.2);
 }
+
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
-body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;opacity:.4}
+
+body {
+  font-family:'Inter',system-ui,-apple-system,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  overflow-x:hidden;
+  font-size:14px;
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
 
 /* ── AUTH SCREEN ── */
-#auth-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}
-.auth-box{width:100%;max-width:420px;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:40px;position:relative;overflow:hidden}
-.auth-box::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--accent2),var(--accent3))}
-.auth-logo{font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:.1em;color:var(--accent);margin-bottom:4px}
-.auth-tagline{font-size:12px;color:var(--muted2);letter-spacing:.2em;text-transform:uppercase;margin-bottom:32px}
-.auth-tabs{display:flex;gap:0;margin-bottom:28px;background:var(--surface2);border-radius:8px;padding:3px}
-.auth-tab{flex:1;padding:8px;text-align:center;font-size:13px;font-weight:600;cursor:pointer;border-radius:6px;color:var(--muted2);transition:all .15s;border:none;background:transparent;font-family:'DM Sans',sans-serif}
-.auth-tab.active{background:var(--surface3);color:var(--text)}
-.auth-field{margin-bottom:16px}
-.auth-label{font-size:11px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;display:block}
-.auth-input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;padding:11px 14px;outline:none;transition:border-color .15s}
-.auth-input:focus{border-color:var(--accent)}
-.auth-btn{width:100%;padding:12px;background:var(--accent);color:#000;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all .15s;margin-top:8px}
-.auth-btn:hover{background:#33eaff}
-.auth-btn:disabled{opacity:.5;cursor:not-allowed}
-.auth-err{background:rgba(255,68,68,.1);border:1px solid rgba(255,68,68,.3);border-radius:6px;padding:10px 12px;font-size:12px;color:var(--danger);margin-bottom:12px;display:none}
-.auth-divider{text-align:center;color:var(--muted);font-size:11px;margin:20px 0;position:relative}
+#auth-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px;background:radial-gradient(ellipse 80% 60% at 50% -10%,rgba(124,106,247,.12),transparent)}
+.auth-box{width:100%;max-width:400px;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:40px;position:relative;overflow:hidden;box-shadow:var(--shadow-lg)}
+.auth-box::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--accent),var(--accent2),transparent)}
+.auth-logo{font-family:'Instrument Serif',serif;font-size:32px;font-style:italic;color:var(--text);margin-bottom:2px;letter-spacing:-.02em}
+.auth-logo span{color:var(--accent)}
+.auth-tagline{font-size:11px;color:var(--text-muted);letter-spacing:.18em;text-transform:uppercase;margin-bottom:32px;font-weight:500}
+.auth-tabs{display:flex;gap:0;margin-bottom:28px;background:var(--surface2);border-radius:var(--radius);padding:3px;border:1px solid var(--border)}
+.auth-tab{flex:1;padding:8px;text-align:center;font-size:13px;font-weight:500;cursor:pointer;border-radius:8px;color:var(--text-secondary);transition:all .18s;border:none;background:transparent;font-family:'Inter',sans-serif}
+.auth-tab.active{background:var(--surface3);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.auth-field{margin-bottom:14px}
+.auth-label{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;display:block}
+.auth-input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:'Inter',sans-serif;font-size:14px;padding:11px 14px;outline:none;transition:border-color .15s,box-shadow .15s}
+.auth-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
+.auth-btn{width:100%;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius-sm);font-family:'Inter',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all .18s;margin-top:8px;letter-spacing:.01em}
+.auth-btn:hover{background:#8b7cf8;box-shadow:0 4px 12px rgba(124,106,247,.35)}
+.auth-btn:disabled{opacity:.5;cursor:not-allowed;box-shadow:none}
+.auth-err{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.25);border-radius:var(--radius-sm);padding:10px 12px;font-size:12px;color:var(--danger);margin-bottom:12px;display:none}
+.auth-divider{text-align:center;color:var(--text-muted);font-size:11px;margin:20px 0;position:relative}
 .auth-divider::before{content:'';position:absolute;top:50%;left:0;right:0;height:1px;background:var(--border)}
 .auth-divider span{background:var(--surface);padding:0 12px;position:relative}
 
 /* ── APP SHELL ── */
 #app-shell{display:none;height:100vh}
 .shell{display:flex;height:100vh}
-.sidebar{width:220px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;position:relative;overflow:hidden}
-.sidebar::after{content:'';position:absolute;bottom:0;left:0;right:0;height:200px;background:linear-gradient(to top,rgba(0,229,255,.04),transparent);pointer-events:none}
-.logo{padding:24px 24px 18px;border-bottom:1px solid var(--border)}
-.logo-word{font-family:'Bebas Neue',sans-serif;font-size:30px;letter-spacing:.08em;color:var(--accent);line-height:1}
-.logo-sub{font-size:9px;font-weight:500;letter-spacing:.3em;text-transform:uppercase;color:var(--muted);margin-top:3px}
-.user-chip{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--border);background:var(--surface2)}
-.user-avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#000;flex-shrink:0}
+.sidebar{width:228px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
+.logo{padding:22px 20px 16px;border-bottom:1px solid var(--border)}
+.logo-word{font-family:'Instrument Serif',serif;font-size:26px;font-style:italic;color:var(--text);line-height:1;letter-spacing:-.02em}
+.logo-word span{color:var(--accent)}
+.logo-sub{font-size:9px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--text-muted);margin-top:4px}
+.user-chip{display:flex;align-items:center;gap:9px;padding:10px 14px;border-bottom:1px solid var(--border);background:var(--surface2)}
+.user-avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff;flex-shrink:0;font-family:'Inter',sans-serif}
 .user-name{font-size:12px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.user-email{font-size:10px;color:var(--muted2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.logout-btn{margin-left:auto;background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:2px;flex-shrink:0}
+.user-email{font-size:10px;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.logout-btn{margin-left:auto;background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:13px;padding:3px;flex-shrink:0;transition:color .15s;border-radius:4px}
 .logout-btn:hover{color:var(--danger)}
-.nav{padding:12px 10px;flex:1;overflow-y:auto}
-.nav-label{font-size:9px;font-weight:700;letter-spacing:.25em;text-transform:uppercase;color:var(--muted);padding:0 10px;margin:14px 0 6px}
-.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;cursor:pointer;color:var(--muted2);font-size:13px;font-weight:500;transition:all .15s;border:1px solid transparent;margin-bottom:2px}
+.nav{padding:10px 10px;flex:1;overflow-y:auto}
+.nav-label{font-size:9px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--text-muted);padding:0 8px;margin:14px 0 4px}
+.nav-label:first-child{margin-top:6px}
+.nav-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--radius-sm);cursor:pointer;color:var(--text-secondary);font-size:13px;font-weight:450;transition:all .15s;border:1px solid transparent;margin-bottom:1px;letter-spacing:.005em}
 .nav-item:hover{background:var(--surface2);color:var(--text)}
-.nav-item.active{background:rgba(0,229,255,.08);color:var(--accent);border-color:rgba(0,229,255,.15)}
-.nav-item .icon{font-size:15px;width:18px;text-align:center}
+.nav-item.active{background:var(--accent-dim);color:var(--accent);border-color:rgba(124,106,247,.2);font-weight:500}
+.nav-item .icon{font-size:14px;width:18px;text-align:center;opacity:.8}
+.nav-item.active .icon{opacity:1}
 .platform-dots{display:flex;gap:4px;margin-left:auto}
-.dot{width:6px;height:6px;border-radius:50%}
-.main{flex:1;overflow-y:auto;display:flex;flex-direction:column}
-.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:100}
-.topbar-title{font-family:'Bebas Neue',sans-serif;font-size:19px;letter-spacing:.05em}
-.topbar-divider{width:1px;height:18px;background:var(--border)}
-.topbar-sub{font-size:12px;color:var(--muted2)}
+.dot{width:5px;height:5px;border-radius:50%}
+.main{flex:1;overflow-y:auto;display:flex;flex-direction:column;background:var(--bg)}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:13px 24px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100;backdrop-filter:blur(8px)}
+.topbar-title{font-size:15px;font-weight:600;color:var(--text);letter-spacing:-.01em}
+.topbar-divider{width:1px;height:16px;background:var(--border)}
+.topbar-sub{font-size:12px;color:var(--text-muted)}
 .topbar-actions{margin-left:auto;display:flex;gap:8px;align-items:center}
 .content{padding:24px;flex:1}
 .tab-panel{display:none}
-.tab-panel.active{display:block;animation:fadeIn .25s ease}
-@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.tab-panel.active{display:block;animation:fadeIn .2s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
 
 /* ── COMMON ── */
-.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px}
-.card-title{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:.05em;margin-bottom:3px}
-.card-sub{font-size:12px;color:var(--muted2);margin-bottom:16px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.card-title{font-size:14px;font-weight:600;color:var(--text);margin-bottom:3px;letter-spacing:-.01em}
+.card-sub{font-size:12px;color:var(--text-muted);margin-bottom:16px}
 .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
 .grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
-.btn{padding:8px 15px;border-radius:7px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .15s;display:inline-flex;align-items:center;gap:6px}
-.btn-primary{background:var(--accent);color:#000}
-.btn-primary:hover{background:#33eaff;transform:translateY(-1px)}
-.btn-ghost{background:transparent;color:var(--muted2);border:1px solid var(--border)}
-.btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
+
+.btn{padding:8px 15px;border-radius:var(--radius-sm);font-family:'Inter',sans-serif;font-size:13px;font-weight:500;cursor:pointer;border:none;transition:all .15s;display:inline-flex;align-items:center;gap:6px;letter-spacing:.005em}
+.btn-primary{background:var(--accent);color:#fff;box-shadow:0 1px 3px rgba(124,106,247,.3)}
+.btn-primary:hover{background:#8b7cf8;box-shadow:0 3px 10px rgba(124,106,247,.35);transform:translateY(-1px)}
+.btn-ghost{background:transparent;color:var(--text-secondary);border:1px solid var(--border)}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-dim)}
 .btn-accent2{background:var(--accent2);color:#fff}
-.btn-accent2:hover{filter:brightness(1.15);transform:translateY(-1px)}
-.btn-sm{padding:6px 11px;font-size:12px}
-.btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important}
-.input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;padding:9px 13px;outline:none;transition:border-color .15s}
-.input:focus{border-color:var(--accent)}
-.select{background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;padding:9px 13px;outline:none;cursor:pointer}
-.textarea{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;padding:13px;resize:vertical;outline:none;transition:border-color .15s;line-height:1.6}
-.textarea:focus{border-color:var(--accent)}
+.btn-accent2:hover{filter:brightness(1.1);transform:translateY(-1px)}
+.btn-sm{padding:5px 11px;font-size:12px}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important;box-shadow:none!important}
+
+.input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:'Inter',sans-serif;font-size:13px;padding:9px 12px;outline:none;transition:border-color .15s,box-shadow .15s}
+.input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
+.select{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:'Inter',sans-serif;font-size:13px;padding:9px 12px;outline:none;cursor:pointer;transition:border-color .15s}
+.select:focus{border-color:var(--accent)}
+.textarea{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:'Inter',sans-serif;font-size:13px;padding:12px;resize:vertical;outline:none;transition:border-color .15s,box-shadow .15s;line-height:1.65}
+.textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
 .field-group{display:flex;flex-direction:column;gap:5px}
-.field-label{font-size:10px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--muted)}
-.sep{height:1px;background:var(--border);margin:18px 0}
-.score-bar{height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin:5px 0}
-.score-fill{height:100%;border-radius:3px;transition:width .6s cubic-bezier(.23,1,.32,1)}
+.field-label{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted)}
+.sep{height:1px;background:var(--border);margin:16px 0}
+.score-bar{height:4px;background:var(--surface3);border-radius:2px;overflow:hidden;margin:4px 0}
+.score-fill{height:100%;border-radius:2px;transition:width .6s cubic-bezier(.23,1,.32,1)}
 
 /* ── STAT CARDS ── */
-.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px;position:relative;overflow:hidden}
-.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 18px;position:relative;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;border-radius:var(--radius-lg) var(--radius-lg) 0 0}
 .stat-card.c1::before{background:var(--accent)} .stat-card.c2::before{background:var(--accent2)}
 .stat-card.c3::before{background:var(--accent3)} .stat-card.c4::before{background:var(--success)}
-.stat-label{font-size:10px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
-.stat-val{font-family:'Bebas Neue',sans-serif;font-size:34px;letter-spacing:.02em;line-height:1}
+.stat-label{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px}
+.stat-val{font-size:30px;font-weight:700;line-height:1;letter-spacing:-.03em}
 .stat-val.c1{color:var(--accent)} .stat-val.c2{color:var(--accent2)}
 .stat-val.c3{color:var(--accent3)} .stat-val.c4{color:var(--success)}
-.stat-change{font-size:11px;color:var(--muted2);margin-top:4px}
-.stat-change .up{color:var(--success);font-weight:600}
-.stat-change .dn{color:var(--danger);font-weight:600}
+.stat-change{font-size:11px;color:var(--text-muted);margin-top:5px}
+.stat-change .up{color:var(--success);font-weight:500}
+.stat-change .dn{color:var(--danger);font-weight:500}
 
 /* ── QUEUE ── */
-.queue-item{display:flex;align-items:center;gap:12px;padding:11px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;margin-bottom:7px;transition:all .12s}
-.queue-item:hover{background:var(--surface3)}
+.queue-item{display:flex;align-items:center;gap:12px;padding:11px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:6px;transition:all .12s}
+.queue-item:hover{background:var(--surface3);border-color:var(--border-light)}
 .queue-plat{font-size:16px;width:26px;text-align:center}
 .queue-info{flex:1;min-width:0}
-.queue-caption{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500}
-.queue-meta{font-size:11px;color:var(--muted2);margin-top:2px;display:flex;gap:10px}
-.queue-status{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:3px 9px;border-radius:4px}
-.status-scheduled{background:rgba(0,229,255,.1);color:var(--accent)}
-.status-draft{background:rgba(90,106,126,.2);color:var(--muted2)}
-.status-posted{background:rgba(0,200,150,.1);color:var(--success)}
-.status-review{background:rgba(255,179,0,.1);color:var(--warn)}
+.queue-caption{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:450;color:var(--text)}
+.queue-meta{font-size:11px;color:var(--text-muted);margin-top:2px;display:flex;gap:10px}
+.queue-status{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:3px 9px;border-radius:20px}
+.status-scheduled{background:rgba(124,106,247,.12);color:var(--accent)}
+.status-draft{background:rgba(92,100,117,.15);color:var(--text-muted)}
+.status-posted{background:rgba(52,211,153,.1);color:var(--success)}
+.status-review{background:rgba(251,191,36,.1);color:var(--warn)}
 
 /* ── CALENDAR ── */
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
-.cal-header{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);text-align:center;padding:5px 0}
-.cal-day{aspect-ratio:1;border-radius:7px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:12px;color:var(--muted2);cursor:pointer;border:1px solid transparent;transition:all .12s;gap:2px}
+.cal-header{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);text-align:center;padding:5px 0}
+.cal-day{aspect-ratio:1;border-radius:var(--radius-sm);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:12px;color:var(--text-secondary);cursor:pointer;border:1px solid transparent;transition:all .12s;gap:2px}
 .cal-day:hover{background:var(--surface2);color:var(--text)}
-.cal-day.today{border-color:var(--accent);color:var(--accent);font-weight:700}
+.cal-day.today{border-color:var(--accent);color:var(--accent);font-weight:600}
 .cal-day.has-post{background:var(--surface2)}
-.cal-day.other-month{opacity:.3}
+.cal-day.other-month{opacity:.25}
 .post-dots{display:flex;gap:2px}
 .pdot{width:4px;height:4px;border-radius:50%}
 
 /* ── IDEAS ── */
 .idea-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px}
-.idea-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:15px;cursor:pointer;transition:all .15s;position:relative;overflow:hidden}
-.idea-card:hover{border-color:var(--accent);transform:translateY(-2px)}
+.idea-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:15px;cursor:pointer;transition:all .15s;position:relative;overflow:hidden}
+.idea-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 4px 16px rgba(124,106,247,.15)}
 .idea-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--accent2));opacity:0;transition:opacity .15s}
 .idea-card:hover::before{opacity:1}
-.idea-type{font-size:9px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-bottom:5px}
-.idea-title{font-size:13px;font-weight:600;margin-bottom:5px;line-height:1.4}
-.idea-desc{font-size:12px;color:var(--muted2);line-height:1.5}
+.idea-type{font-size:9px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);margin-bottom:5px}
+.idea-title{font-size:13px;font-weight:600;margin-bottom:5px;line-height:1.4;color:var(--text);letter-spacing:-.005em}
+.idea-desc{font-size:12px;color:var(--text-secondary);line-height:1.55}
 .idea-tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:9px}
-.tag{background:var(--surface3);color:var(--muted2);font-size:10px;font-weight:500;padding:3px 7px;border-radius:4px;font-family:'DM Mono',monospace}
-.hashtag{display:inline-block;background:rgba(0,229,255,.08);color:var(--accent);font-size:12px;padding:3px 8px;border-radius:4px;margin:2px;font-family:'DM Mono',monospace;cursor:pointer;border:1px solid rgba(0,229,255,.15)}
-.hashtag:hover{background:rgba(0,229,255,.15)}
+.tag{background:var(--surface3);color:var(--text-muted);font-size:10px;font-weight:500;padding:3px 7px;border-radius:4px;font-family:'JetBrains Mono',monospace;letter-spacing:.02em}
+.hashtag{display:inline-block;background:var(--accent-dim);color:var(--accent);font-size:11px;padding:3px 8px;border-radius:4px;margin:2px;font-family:'JetBrains Mono',monospace;cursor:pointer;border:1px solid rgba(124,106,247,.2);transition:background .12s}
+.hashtag:hover{background:rgba(124,106,247,.18)}
 
 /* ── COMPOSER ── */
-.composer-platforms{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px}
-.plat-toggle{padding:5px 12px;border-radius:18px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:transparent;color:var(--muted2);transition:all .15s;display:flex;align-items:center;gap:4px;font-family:'DM Sans',sans-serif}
+.composer-platforms{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.plat-toggle{padding:5px 11px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text-secondary);transition:all .15s;display:flex;align-items:center;gap:4px;font-family:'Inter',sans-serif}
+.plat-toggle:hover{border-color:var(--border-light);color:var(--text)}
 .plat-toggle.active-ig{border-color:var(--ig);color:var(--ig);background:rgba(225,48,108,.1)}
-.plat-toggle.active-tw{border-color:var(--tw);color:var(--tw);background:rgba(29,161,242,.1)}
+.plat-toggle.active-tw{border-color:var(--tw);color:var(--tw);background:rgba(29,155,240,.1)}
 .plat-toggle.active-tk{border-color:var(--tk);color:var(--tk);background:rgba(255,0,80,.1)}
 .plat-toggle.active-li{border-color:var(--li);color:var(--li);background:rgba(10,102,194,.1)}
 .plat-toggle.active-fb{border-color:var(--fb);color:var(--fb);background:rgba(24,119,242,.1)}
 .plat-toggle.active-yt{border-color:var(--yt);color:var(--yt);background:rgba(255,0,0,.1)}
-.char-counter{font-size:11px;color:var(--muted);text-align:right;margin-top:3px;font-family:'DM Mono',monospace}
+.plat-toggle.active-sc{border-color:#c8c800;color:#c8c800;background:rgba(255,252,0,.08)}
+.char-counter{font-size:11px;color:var(--text-muted);text-align:right;margin-top:3px;font-family:'JetBrains Mono',monospace}
 .char-counter.warn{color:var(--warn)} .char-counter.danger{color:var(--accent2)}
 
 /* ── AI ── */
-.ai-response{background:linear-gradient(135deg,rgba(0,229,255,.05),rgba(255,60,172,.03));border:1px solid rgba(0,229,255,.2);border-radius:12px;padding:15px;margin-top:11px;font-size:14px;line-height:1.7}
-.ai-badge{font-size:9px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-bottom:7px;display:flex;align-items:center;gap:6px}
+.ai-response{background:linear-gradient(135deg,rgba(124,106,247,.06),rgba(244,114,182,.03));border:1px solid rgba(124,106,247,.2);border-radius:var(--radius);padding:15px;margin-top:11px;font-size:13px;line-height:1.7;color:var(--text)}
+.ai-badge{font-size:9px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);margin-bottom:7px;display:flex;align-items:center;gap:6px}
 .ai-badge::before{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 1.5s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
 .loading-dots{display:inline-flex;gap:4px;align-items:center}
 .loading-dots span{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:bounce 1.2s infinite}
 .loading-dots span:nth-child(2){animation-delay:.2s}
 .loading-dots span:nth-child(3){animation-delay:.4s}
-@keyframes bounce{0%,60%,100%{transform:translateY(0);opacity:.6}30%{transform:translateY(-5px);opacity:1}}
-.proof-output{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:15px;min-height:100px;font-size:14px;line-height:1.7}
-.mark-error{background:rgba(255,60,172,.18);border-bottom:2px solid var(--accent2);cursor:help}
-.mark-suggest{background:rgba(0,229,255,.12);border-bottom:2px solid var(--accent);cursor:help}
+@keyframes bounce{0%,60%,100%{transform:translateY(0);opacity:.5}30%{transform:translateY(-5px);opacity:1}}
+.proof-output{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:14px;min-height:90px;font-size:13px;line-height:1.7;color:var(--text)}
+.mark-error{background:rgba(244,114,182,.15);border-bottom:2px solid var(--accent2);cursor:help}
+.mark-suggest{background:rgba(124,106,247,.12);border-bottom:2px solid var(--accent);cursor:help}
 
 /* ── ANALYTICS ── */
-.analytics-hero{background:linear-gradient(135deg,rgba(0,229,255,.06),rgba(255,60,172,.04));border:1px solid var(--border);border-radius:14px;padding:24px;margin-bottom:18px;position:relative;overflow:hidden}
-.analytics-hero::before{content:'';position:absolute;top:-40px;right:-40px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(0,229,255,.08),transparent 70%)}
-.plat-tabs{display:flex;gap:0;background:var(--surface2);border-radius:9px;padding:3px;margin-bottom:18px;border:1px solid var(--border)}
-.plat-tab{flex:1;padding:8px;text-align:center;font-size:12px;font-weight:700;cursor:pointer;border-radius:7px;color:var(--muted2);transition:all .15s;border:none;background:transparent;font-family:'DM Sans',sans-serif;display:flex;align-items:center;justify-content:center;gap:5px}
-.plat-tab.active{color:var(--text)}
+.analytics-hero{background:linear-gradient(135deg,rgba(124,106,247,.07),rgba(244,114,182,.04));border:1px solid var(--border);border-radius:var(--radius-lg);padding:22px;margin-bottom:18px}
+.plat-tabs{display:flex;gap:0;background:var(--surface2);border-radius:var(--radius);padding:3px;margin-bottom:18px;border:1px solid var(--border)}
+.plat-tab{flex:1;padding:7px;text-align:center;font-size:12px;font-weight:500;cursor:pointer;border-radius:var(--radius-sm);color:var(--text-secondary);transition:all .15s;border:none;background:transparent;font-family:'Inter',sans-serif;display:flex;align-items:center;justify-content:center;gap:4px;letter-spacing:.005em}
+.plat-tab.active{color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.2)}
 .plat-tab.active[data-plat="ig"]{background:rgba(225,48,108,.15);color:var(--ig)}
-.plat-tab.active[data-plat="tw"]{background:rgba(29,161,242,.15);color:var(--tw)}
+.plat-tab.active[data-plat="tw"]{background:rgba(29,155,240,.15);color:var(--tw)}
 .plat-tab.active[data-plat="tk"]{background:rgba(255,0,80,.15);color:var(--tk)}
 .plat-tab.active[data-plat="li"]{background:rgba(10,102,194,.15);color:var(--li)}
 .plat-tab.active[data-plat="yt"]{background:rgba(255,0,0,.15);color:var(--yt)}
-
-/* CHART */
-.chart-wrap{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:16px}
-.chart-title{font-size:11px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;display:flex;justify-content:space-between;align-items:center}
+.plat-tab.active[data-plat="fb"]{background:rgba(24,119,242,.15);color:var(--fb)}
+.plat-tab.active[data-plat="sc"]{background:rgba(255,252,0,.1);color:#c8c800}
+.chart-wrap{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:14px}
+.chart-title{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
 .chart-svg-wrap{width:100%;overflow:hidden}
 svg.chart{width:100%;height:180px;display:block}
-
-/* SOCIALBLADE TABLE */
 .sb-table{width:100%;border-collapse:separate;border-spacing:0;font-size:12px}
-.sb-table th{font-size:9px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);padding:8px 12px;text-align:left;border-bottom:1px solid var(--border)}
-.sb-table td{padding:7px 12px;border-bottom:1px solid rgba(35,43,55,.5);color:var(--muted2);font-family:'DM Mono',monospace;font-size:11px}
+.sb-table th{font-size:9px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);padding:8px 12px;text-align:left;border-bottom:1px solid var(--border)}
+.sb-table td{padding:7px 12px;border-bottom:1px solid rgba(42,47,58,.5);color:var(--text-secondary);font-family:'JetBrains Mono',monospace;font-size:11px}
 .sb-table tr:hover td{background:var(--surface2)}
-.sb-table td.pos{color:var(--success)} .sb-table td.neg{color:var(--danger)} .sb-table td.neu{color:var(--muted2)}
-.grade{font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;font-family:'DM Sans',sans-serif}
-.grade-A{background:rgba(0,200,150,.15);color:var(--success)}
-.grade-B{background:rgba(0,229,255,.1);color:var(--accent)}
-.grade-C{background:rgba(255,179,0,.1);color:var(--warn)}
-.grade-D{background:rgba(255,68,68,.1);color:var(--danger)}
-
-/* DEMOGRAPHICS */
-.demo-bar-wrap{margin-bottom:10px}
-.demo-bar-label{display:flex;justify-content:space-between;font-size:11px;color:var(--muted2);margin-bottom:4px}
-.demo-bar{height:8px;background:var(--border);border-radius:4px;overflow:hidden}
+.sb-table td.pos{color:var(--success)} .sb-table td.neg{color:var(--danger)} .sb-table td.neu{color:var(--text-muted)}
+.grade{font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;font-family:'Inter',sans-serif}
+.grade-A{background:rgba(52,211,153,.12);color:var(--success)}
+.grade-B{background:rgba(124,106,247,.1);color:var(--accent)}
+.grade-C{background:rgba(251,191,36,.1);color:var(--warn)}
+.grade-D{background:rgba(248,113,113,.1);color:var(--danger)}
+.demo-bar-wrap{margin-bottom:9px}
+.demo-bar-label{display:flex;justify-content:space-between;font-size:11px;color:var(--text-secondary);margin-bottom:4px}
+.demo-bar{height:7px;background:var(--border);border-radius:4px;overflow:hidden}
 .demo-fill{height:100%;border-radius:4px;transition:width .8s cubic-bezier(.23,1,.32,1)}
-
-/* CONNECT BANNER */
-.connect-banner{background:rgba(255,215,0,.05);border:1px dashed rgba(255,215,0,.25);border-radius:10px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:12px;font-size:12px;color:var(--muted2)}
+.connect-banner{background:rgba(251,191,36,.04);border:1px dashed rgba(251,191,36,.2);border-radius:var(--radius);padding:11px 15px;margin-bottom:14px;display:flex;align-items:center;gap:11px;font-size:12px;color:var(--text-secondary)}
 .connect-banner strong{color:var(--accent3)}
-
-/* PREVIEW */
-.platform-preview{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:13px}
+.platform-preview{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:13px}
 .preview-header{display:flex;align-items:center;gap:8px;margin-bottom:9px}
 .preview-avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));flex-shrink:0}
-.preview-name{font-size:12px;font-weight:600}
-.preview-handle{font-size:10px;color:var(--muted2)}
+.preview-name{font-size:12px;font-weight:600;color:var(--text)}
+.preview-handle{font-size:10px;color:var(--text-muted)}
+
+/* ── CONNECTIONS ── */
+.conn-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px;display:flex;flex-direction:column;gap:11px;transition:border-color .15s;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.conn-card.connected{border-color:rgba(52,211,153,.2)}
+.conn-card-header{display:flex;align-items:center;gap:11px}
+.conn-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0}
+.conn-name{font-size:13px;font-weight:600;color:var(--text);letter-spacing:-.005em}
+.conn-handle{font-size:11px;color:var(--text-muted);margin-top:1px}
+.conn-status{margin-left:auto;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:3px 9px;border-radius:20px}
+.conn-status.live{background:rgba(52,211,153,.1);color:var(--success)}
+.conn-status.pending{background:rgba(251,191,36,.1);color:var(--warn)}
+.conn-status.off{background:rgba(92,100,117,.15);color:var(--text-muted)}
+.conn-stats{display:flex;gap:16px}
+.conn-stat{font-size:11px;color:var(--text-muted)}
+.conn-stat strong{display:block;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--text);font-weight:500}
+.conn-btn{width:100%;padding:9px;border-radius:var(--radius-sm);font-family:'Inter',sans-serif;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text);transition:all .15s;letter-spacing:.005em}
+.conn-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-dim)}
+.conn-btn.connected-btn{border-color:rgba(248,113,113,.25);color:var(--danger)}
+.conn-btn.connected-btn:hover{background:rgba(248,113,113,.07)}
+.manual-row{display:flex;align-items:center;gap:9px;padding:9px 0;border-bottom:1px solid var(--border)}
+.manual-row:last-child{border-bottom:none}
+.manual-plat-icon{font-size:17px;width:26px;text-align:center;flex-shrink:0}
+.manual-plat-name{font-size:13px;font-weight:500;color:var(--text);width:96px;flex-shrink:0}
+.manual-input{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:11px;padding:7px 10px;outline:none;transition:border-color .15s}
+.manual-input:focus{border-color:var(--accent)}
+.manual-save-btn{padding:6px 13px;border-radius:var(--radius-sm);font-family:'Inter',sans-serif;font-size:11px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text-muted);transition:all .15s;white-space:nowrap}
+.manual-save-btn:hover{border-color:var(--success);color:var(--success)}
+.review-row{display:flex;align-items:center;gap:11px;padding:10px 0;border-bottom:1px solid var(--border)}
+.review-row:last-child{border-bottom:none}
+.review-badge{font-size:10px;font-weight:600;padding:2px 8px;border-radius:4px;white-space:nowrap}
+.rb-easy{background:rgba(52,211,153,.1);color:var(--success)}
+.rb-medium{background:rgba(251,191,36,.1);color:var(--warn)}
+.rb-hard{background:rgba(248,113,113,.1);color:var(--danger)}
+.rb-instant{background:rgba(124,106,247,.1);color:var(--accent)}
 
 ::-webkit-scrollbar{width:4px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
-
-/* ── CONNECTIONS ── */
-.conn-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:12px;transition:border-color .15s}
-.conn-card.connected{border-color:rgba(0,200,150,.25)}
-.conn-card-header{display:flex;align-items:center;gap:12px}
-.conn-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
-.conn-name{font-size:14px;font-weight:700;color:var(--text)}
-.conn-handle{font-size:11px;color:var(--muted2);margin-top:2px}
-.conn-status{margin-left:auto;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:3px 9px;border-radius:4px}
-.conn-status.live{background:rgba(0,200,150,.1);color:var(--success)}
-.conn-status.pending{background:rgba(255,179,0,.1);color:var(--warn)}
-.conn-status.off{background:rgba(90,106,126,.15);color:var(--muted2)}
-.conn-stats{display:flex;gap:16px}
-.conn-stat{font-size:11px;color:var(--muted2)}.conn-stat strong{display:block;font-family:'DM Mono',monospace;font-size:13px;color:var(--text);font-weight:500}
-.conn-btn{width:100%;padding:9px;border-radius:7px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text);transition:all .15s}
-.conn-btn:hover{border-color:var(--accent);color:var(--accent)}
-.conn-btn.connected-btn{border-color:rgba(255,68,68,.3);color:var(--danger)}
-.conn-btn.connected-btn:hover{background:rgba(255,68,68,.08)}
-.manual-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
-.manual-row:last-child{border-bottom:none}
-.manual-plat-icon{font-size:18px;width:28px;text-align:center;flex-shrink:0}
-.manual-plat-name{font-size:13px;font-weight:600;color:var(--text);width:100px;flex-shrink:0}
-.manual-input{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-family:'DM Mono',monospace;font-size:11px;padding:7px 10px;outline:none;transition:border-color .15s}
-.manual-input:focus{border-color:var(--accent)}
-.manual-save-btn{padding:7px 14px;border-radius:7px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--muted2);transition:all .15s;white-space:nowrap}
-.manual-save-btn:hover{border-color:var(--success);color:var(--success)}
-.review-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
-.review-row:last-child{border-bottom:none}
-.review-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;white-space:nowrap}
-.rb-easy{background:rgba(0,200,150,.1);color:var(--success)}
-.rb-medium{background:rgba(255,179,0,.1);color:var(--warn)}
-.rb-hard{background:rgba(255,68,68,.1);color:var(--danger)}
-.rb-instant{background:rgba(0,229,255,.1);color:var(--accent)}
+::-webkit-scrollbar-thumb:hover{background:var(--border-light)}
 </style>
 </head>
 <body>
@@ -268,7 +285,7 @@ svg.chart{width:100%;height:180px;display:block}
 ══════════════════════════════════════════ -->
 <div id="auth-screen">
   <div class="auth-box">
-    <div class="auth-logo">FLŌW</div>
+    <div class="auth-logo">FL<span>Ō</span>W</div>
     <div class="auth-tagline">Social Media Command Center</div>
     <div class="auth-tabs">
       <button class="auth-tab active" onclick="showAuthTab('login')">Sign In</button>
@@ -304,7 +321,7 @@ svg.chart{width:100%;height:180px;display:block}
 
 <!-- SIDEBAR -->
 <aside class="sidebar">
-  <div class="logo"><div class="logo-word">FLŌW</div><div class="logo-sub">Social Media Organizer</div></div>
+  <div class="logo"><div class="logo-word">FL<span>Ō</span>W</div><div class="logo-sub">Social Media Organizer</div></div>
   <div class="user-chip">
     <div class="user-avatar" id="user-avatar">?</div>
     <div style="min-width:0"><div class="user-name" id="user-name">Loading...</div><div class="user-email" id="user-email"></div></div>
@@ -321,6 +338,10 @@ svg.chart{width:100%;height:180px;display:block}
     <div class="nav-item" onclick="switchTab('proofread',this)"><span class="icon">⊕</span> Proofread</div>
     <div class="nav-label">Analytics</div>
     <div class="nav-item" onclick="switchTab('analytics',this)"><span class="icon">◎</span> Analytics</div>
+    <div class="nav-label">Tools</div>
+    <div class="nav-item" onclick="switchTab('pitchdeck',this)"><span class="icon">📊</span> Pitch Decks</div>
+    <div class="nav-item" onclick="switchTab('rolodex',this)"><span class="icon">👥</span> Rolodex</div>
+    <div class="nav-item" onclick="switchTab('algorithm',this)"><span class="icon">⚙</span> Algorithm Guide</div>
     <div class="nav-label">Platforms</div>
     <div class="nav-item" onclick="switchTab('connections',this)"><span class="icon">🔗</span> Connect Accounts</div>
     <div class="nav-item" id="nav-ig"><span class="icon">📸</span> Instagram<div class="platform-dots"><div class="dot" id="dot-ig" style="background:var(--muted)"></div></div></div>
@@ -358,16 +379,16 @@ svg.chart{width:100%;height:180px;display:block}
     <div class="grid-2" style="margin-bottom:18px">
       <div class="card">
         <div class="card-title">Upcoming Posts</div><div class="card-sub">Next scheduled</div>
-        <div id="dash-upcoming"><div style="text-align:center;padding:24px;color:var(--muted2);font-size:13px">Loading...</div></div>
+        <div id="dash-upcoming"><div style="text-align:center;padding:24px;color:var(--text-secondary);font-size:13px">Loading...</div></div>
       </div>
       <div class="card">
         <div class="card-title">Platform Health</div><div class="card-sub">Posting frequency</div>
         <div style="display:flex;flex-direction:column;gap:13px">
-          <div><div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="font-size:13px">📸 Instagram</span><span style="font-size:11px;color:var(--success);font-family:'DM Mono'">5× / wk</span></div><div class="score-bar"><div class="score-fill" style="width:90%;background:var(--ig)"></div></div></div>
-          <div><div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="font-size:13px">𝕏 Twitter</span><span style="font-size:11px;color:var(--success);font-family:'DM Mono'">7× / wk</span></div><div class="score-bar"><div class="score-fill" style="width:100%;background:var(--tw)"></div></div></div>
-          <div><div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="font-size:13px">▶ TikTok</span><span style="font-size:11px;color:var(--warn);font-family:'DM Mono'">2× / wk</span></div><div class="score-bar"><div class="score-fill" style="width:40%;background:var(--tk)"></div></div></div>
-          <div><div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="font-size:13px">in LinkedIn</span><span style="font-size:11px;color:var(--muted2);font-family:'DM Mono'">0× / wk</span></div><div class="score-bar"><div class="score-fill" style="width:10%;background:var(--li)"></div></div></div>
-          <div><div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="font-size:13px">▷ YouTube</span><span style="font-size:11px;color:var(--warn);font-family:'DM Mono'">1× / wk</span></div><div class="score-bar"><div class="score-fill" style="width:30%;background:var(--yt)"></div></div></div>
+          <div><div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="font-size:13px">📸 Instagram</span><span style="font-size:11px;color:var(--success);font-family:'JetBrains Mono'">5× / wk</span></div><div class="score-bar"><div class="score-fill" style="width:90%;background:var(--ig)"></div></div></div>
+          <div><div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="font-size:13px">𝕏 Twitter</span><span style="font-size:11px;color:var(--success);font-family:'JetBrains Mono'">7× / wk</span></div><div class="score-bar"><div class="score-fill" style="width:100%;background:var(--tw)"></div></div></div>
+          <div><div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="font-size:13px">▶ TikTok</span><span style="font-size:11px;color:var(--warn);font-family:'JetBrains Mono'">2× / wk</span></div><div class="score-bar"><div class="score-fill" style="width:40%;background:var(--tk)"></div></div></div>
+          <div><div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="font-size:13px">in LinkedIn</span><span style="font-size:11px;color:var(--text-secondary);font-family:'JetBrains Mono'">0× / wk</span></div><div class="score-bar"><div class="score-fill" style="width:10%;background:var(--li)"></div></div></div>
+          <div><div style="display:flex;justify-content:space-between;margin-bottom:5px"><span style="font-size:13px">▷ YouTube</span><span style="font-size:11px;color:var(--warn);font-family:'JetBrains Mono'">1× / wk</span></div><div class="score-bar"><div class="score-fill" style="width:30%;background:var(--yt)"></div></div></div>
         </div>
       </div>
     </div>
@@ -396,10 +417,25 @@ svg.chart{width:100%;height:180px;display:block}
               <button class="plat-toggle" id="tog-li" onclick="togglePlat('li')">in LinkedIn</button>
               <button class="plat-toggle" id="tog-fb" onclick="togglePlat('fb')">f Facebook</button>
               <button class="plat-toggle" id="tog-yt" onclick="togglePlat('yt')">▷ YouTube</button>
+              <button class="plat-toggle" id="tog-sc" onclick="togglePlat('sc')">👻 Snapchat</button>
             </div>
           </div>
+
+          <!-- MEDIA UPLOAD -->
+          <div class="field-group" style="margin-bottom:13px">
+            <div class="field-label">Media <span style="color:var(--text-muted);font-weight:400;text-transform:none;letter-spacing:0">— photos, videos, reels</span></div>
+            <div id="media-dropzone" onclick="document.getElementById('media-file-input').click()" ondragover="event.preventDefault();this.style.borderColor='var(--accent)'" ondragleave="this.style.borderColor='var(--border)'" ondrop="handleMediaDrop(event)" style="border:2px dashed var(--border);border-radius:10px;padding:20px;text-align:center;cursor:pointer;transition:border-color .15s;background:var(--surface2)">
+              <div style="font-size:24px;margin-bottom:6px">📎</div>
+              <div style="font-size:13px;color:var(--text-secondary);margin-bottom:4px">Drag & drop or <span style="color:var(--accent)">browse files</span></div>
+              <div style="font-size:11px;color:var(--text-muted)">JPG, PNG, GIF, MP4, MOV — up to 100MB</div>
+              <input type="file" id="media-file-input" multiple accept="image/*,video/*" style="display:none" onchange="handleMediaFiles(this.files)">
+            </div>
+            <div id="media-preview-grid" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"></div>
+            <div id="media-type-indicator" style="display:none;margin-top:6px;font-size:11px;color:var(--text-secondary)"></div>
+          </div>
+
           <div class="field-group" style="margin-bottom:11px"><div class="field-label">Caption</div>
-            <textarea class="textarea" id="composer-caption" rows="5" placeholder="What's the story?" oninput="updateCharCount()"></textarea>
+            <textarea class="textarea" id="composer-caption" rows="4" placeholder="What's the story?" oninput="updateCharCount()"></textarea>
             <div class="char-counter" id="char-counter">0 / 2200</div>
           </div>
           <div class="field-group" style="margin-bottom:13px"><div class="field-label">Hashtags</div>
@@ -425,8 +461,8 @@ svg.chart{width:100%;height:180px;display:block}
           <div class="card-title">Live Preview</div><div class="card-sub">How it will look</div>
           <div class="platform-preview">
             <div class="preview-header"><div class="preview-avatar"></div><div><div class="preview-name">@yourbrand</div><div class="preview-handle">Just now · 📸</div></div></div>
-            <div id="preview-text" style="color:var(--muted2);font-style:italic;font-size:13px">Your caption will appear here...</div>
-            <div style="margin-top:9px;background:var(--surface3);border-radius:7px;height:140px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px">📷 Media placeholder</div>
+            <div id="preview-text" style="color:var(--text-secondary);font-style:italic;font-size:13px">Your caption will appear here...</div>
+            <div id="preview-media" style="margin-top:9px;background:var(--surface3);border-radius:7px;height:140px;display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:12px;overflow:hidden">📷 Media will appear here</div>
           </div>
         </div>
         <div class="card">
@@ -468,11 +504,11 @@ svg.chart{width:100%;height:180px;display:block}
       <div class="cal-grid" id="calendar-grid"></div>
     </div>
       <div style="display:flex;gap:12px;margin-top:14px;flex-wrap:wrap">
-      <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted2)"><div class="dot" style="background:var(--ig);width:8px;height:8px"></div>Instagram</div>
-      <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted2)"><div class="dot" style="background:var(--tw);width:8px;height:8px"></div>Twitter</div>
-      <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted2)"><div class="dot" style="background:var(--tk);width:8px;height:8px"></div>TikTok</div>
-      <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted2)"><div class="dot" style="background:var(--li);width:8px;height:8px"></div>LinkedIn</div>
-      <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted2)"><div class="dot" style="background:var(--yt);width:8px;height:8px"></div>YouTube</div>
+      <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-secondary)"><div class="dot" style="background:var(--ig);width:8px;height:8px"></div>Instagram</div>
+      <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-secondary)"><div class="dot" style="background:var(--tw);width:8px;height:8px"></div>Twitter</div>
+      <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-secondary)"><div class="dot" style="background:var(--tk);width:8px;height:8px"></div>TikTok</div>
+      <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-secondary)"><div class="dot" style="background:var(--li);width:8px;height:8px"></div>LinkedIn</div>
+      <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-secondary)"><div class="dot" style="background:var(--yt);width:8px;height:8px"></div>YouTube</div>
     </div>
   </div>
 
@@ -508,16 +544,16 @@ svg.chart{width:100%;height:180px;display:block}
       <div>
         <div class="card" style="margin-bottom:14px">
           <div class="card-title">Analysis Scores</div><div class="card-sub">Content quality breakdown</div>
-          <div id="score-display"><div style="text-align:center;padding:28px 0;color:var(--muted2);font-size:13px">Run analysis to see scores</div></div>
+          <div id="score-display"><div style="text-align:center;padding:28px 0;color:var(--text-secondary);font-size:13px">Run analysis to see scores</div></div>
         </div>
         <div class="card">
           <div class="card-title">Markup Legend</div>
           <div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:10px">
-            <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted2)"><div style="width:10px;height:4px;border-radius:2px;background:var(--accent2)"></div>Error</div>
-            <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted2)"><div style="width:10px;height:4px;border-radius:2px;background:var(--accent)"></div>Suggestion</div>
-            <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted2)"><div style="width:10px;height:4px;border-radius:2px;background:var(--success)"></div>Strong</div>
+            <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-secondary)"><div style="width:10px;height:4px;border-radius:2px;background:var(--accent2)"></div>Error</div>
+            <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-secondary)"><div style="width:10px;height:4px;border-radius:2px;background:var(--accent)"></div>Suggestion</div>
+            <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-secondary)"><div style="width:10px;height:4px;border-radius:2px;background:var(--success)"></div>Strong</div>
           </div>
-          <div style="font-size:12px;color:var(--muted2);line-height:1.6">Hover highlighted text to see AI suggestions.</div>
+          <div style="font-size:12px;color:var(--text-secondary);line-height:1.6">Hover highlighted text to see AI suggestions.</div>
         </div>
       </div>
     </div>
@@ -530,7 +566,7 @@ svg.chart{width:100%;height:180px;display:block}
       <span style="font-size:18px">⚡</span>
       <div><strong>Demo Data Active</strong> — This dashboard shows realistic sample data. To see your real stats, connect your accounts via the platform APIs (see README for setup instructions).</div>
     </div>
-    <div id="best-time-insight" style="display:none;background:rgba(255,215,0,.05);border:1px solid rgba(255,215,0,.2);border-radius:9px;padding:10px 16px;margin-bottom:14px;font-size:12px;color:var(--muted2);gap:8px;align-items:center"></div>
+    <div id="best-time-insight" style="display:none;background:rgba(255,215,0,.05);border:1px solid rgba(255,215,0,.2);border-radius:9px;padding:10px 16px;margin-bottom:14px;font-size:12px;color:var(--text-secondary);gap:8px;align-items:center"></div>
 
     <!-- Platform Tabs -->
     <div class="plat-tabs">
@@ -549,7 +585,7 @@ svg.chart{width:100%;height:180px;display:block}
       <div class="chart-wrap" style="grid-column:1/-1">
         <div class="chart-title">
           <span>30-Day Follower Growth</span>
-          <span id="analytics-range" style="color:var(--muted2);font-size:10px;font-weight:400"></span>
+          <span id="analytics-range" style="color:var(--text-secondary);font-size:10px;font-weight:400"></span>
         </div>
         <div class="chart-svg-wrap" id="growth-chart"></div>
       </div>
@@ -595,8 +631,8 @@ svg.chart{width:100%;height:180px;display:block}
   <div id="tab-connections" class="tab-panel" style="padding:24px">
 
     <div style="margin-bottom:20px">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.05em;margin-bottom:4px">Connected Accounts</div>
-      <div style="font-size:13px;color:var(--muted2)">Connect your social accounts to enable real analytics, auto-posting, and one-click publishing.</div>
+      <div style="font-family:'Instrument Serif',serif;font-style:italic;font-size:24px;letter-spacing:-.02em;margin-bottom:4px;font-style:italic">Connected Accounts</div>
+      <div style="font-size:13px;color:var(--text-secondary)">Connect your social accounts to enable real analytics, auto-posting, and one-click publishing.</div>
     </div>
 
     <!-- OAuth platforms -->
@@ -616,7 +652,7 @@ svg.chart{width:100%;height:180px;display:block}
         <!-- populated by JS -->
       </div>
 
-      <div style="margin-top:16px;padding:12px;background:rgba(0,229,255,.04);border:1px solid rgba(0,229,255,.12);border-radius:8px;font-size:12px;color:var(--muted2);line-height:1.6">
+      <div style="margin-top:16px;padding:12px;background:rgba(0,229,255,.04);border:1px solid rgba(0,229,255,.12);border-radius:8px;font-size:12px;color:var(--text-secondary);line-height:1.6">
         <strong style="color:var(--accent)">Where to get your tokens:</strong><br>
         Instagram/Facebook → <a href="https://developers.facebook.com/tools/explorer" target="_blank" style="color:var(--accent)">Meta Graph API Explorer</a> &nbsp;·&nbsp;
         Twitter → <a href="https://developer.twitter.com/en/portal/dashboard" target="_blank" style="color:var(--tw)">developer.twitter.com</a> &nbsp;·&nbsp;
@@ -633,6 +669,94 @@ svg.chart{width:100%;height:180px;display:block}
       </div>
     </div>
 
+  </div><!-- /connections tab -->
+
+  <!-- ────────────────── PITCH DECKS ────────────────── -->
+  <div id="tab-pitchdeck" class="tab-panel" style="padding:24px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+      <div>
+        <div style="font-family:'Instrument Serif',serif;font-style:italic;font-size:24px;letter-spacing:-.02em;margin-bottom:4px;font-style:italic">Pitch Decks</div>
+        <div style="font-size:13px;color:var(--text-secondary)">AI-powered pitch deck outlines for brand deals, sponsorships, and partnerships.</div>
+      </div>
+      <button class="btn btn-primary" onclick="generatePitchDeck()">✦ Generate Pitch Deck</button>
+    </div>
+    <div class="grid-2" style="gap:14px;margin-bottom:16px">
+      <div class="field-group"><div class="field-label">Your Brand / Name</div><input class="input" id="pitch-brand" placeholder="e.g. The Daily Coffee Co."></div>
+      <div class="field-group"><div class="field-label">Target Company / Sponsor</div><input class="input" id="pitch-target" placeholder="e.g. Nike, a local gym..."></div>
+      <div class="field-group"><div class="field-label">Your Niche</div><input class="input" id="pitch-niche" placeholder="e.g. Lifestyle & Wellness, Tech Reviews..."></div>
+      <div class="field-group"><div class="field-label">Deal Type</div>
+        <select class="select" id="pitch-type" style="width:100%">
+          <option>Brand Sponsorship</option><option>Affiliate Partnership</option><option>Product Collaboration</option><option>Ambassador Program</option><option>Content Creation Contract</option><option>Media Kit</option>
+        </select>
+      </div>
+      <div class="field-group" style="grid-column:1/-1"><div class="field-label">Your Key Stats</div><input class="input" id="pitch-stats" placeholder="e.g. 24k Instagram followers, 4.2% engagement, 180k monthly reach"></div>
+    </div>
+    <div id="pitch-result"></div>
+    <div class="card" style="margin-top:16px">
+      <div class="card-title">Saved Pitch Decks</div><div class="card-sub">Your generated decks</div>
+      <div id="saved-pitches"><div style="text-align:center;padding:28px;color:var(--text-secondary);font-size:13px">No pitch decks yet — generate your first one above.</div></div>
+    </div>
+  </div>
+
+  <!-- ────────────────── ROLODEX ────────────────── -->
+  <div id="tab-rolodex" class="tab-panel" style="padding:24px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+      <div>
+        <div style="font-family:'Instrument Serif',serif;font-style:italic;font-size:24px;letter-spacing:-.02em;margin-bottom:4px;font-style:italic">Rolodex</div>
+        <div style="font-size:13px;color:var(--text-secondary)">Contacts, POCs, brands, and collaborators — all in one place.</div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost" onclick="showImportModal()">↓ Import CSV</button>
+        <button class="btn btn-primary" onclick="showAddContact()">+ Add Contact</button>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;margin-bottom:16px">
+      <input class="input" id="rolodex-search" placeholder="Search by name, company, or tag..." oninput="filterContacts()" style="flex:1">
+      <select class="select" id="rolodex-filter" onchange="filterContacts()">
+        <option value="">All Types</option><option value="brand">Brands</option><option value="agency">Agencies</option><option value="creator">Creators</option><option value="pr">PR / Media</option><option value="client">Clients</option><option value="other">Other</option>
+      </select>
+    </div>
+    <div id="contact-form-wrap" style="display:none;margin-bottom:14px"></div>
+    <div id="import-modal" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px">
+      <div class="card-title" style="margin-bottom:4px">Import Contacts</div>
+      <div class="card-sub" style="margin-bottom:12px">Paste CSV — columns: Name, Email, Phone, Company, Type, Notes</div>
+      <textarea class="textarea" id="import-csv" rows="4" placeholder="John Smith, john@brand.com, 555-0100, Nike, brand, Key contact for footwear&#10;Sarah Lee, sarah@agency.com, , Creative Agency, agency,"></textarea>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button class="btn btn-primary" onclick="importCSV()">Import</button>
+        <button class="btn btn-ghost" onclick="document.getElementById('import-modal').style.display='none'">Cancel</button>
+      </div>
+    </div>
+    <div id="contacts-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px"></div>
+  </div>
+
+  <!-- ────────────────── ALGORITHM GUIDE ────────────────── -->
+  <div id="tab-algorithm" class="tab-panel" style="padding:24px">
+    <div style="margin-bottom:20px">
+      <div style="font-family:'Instrument Serif',serif;font-style:italic;font-size:24px;letter-spacing:-.02em;margin-bottom:4px;font-style:italic">Algorithm Guide</div>
+      <div style="font-size:13px;color:var(--text-secondary)">How each platform's algorithm works right now — and exactly how to beat it.</div>
+    </div>
+    <div style="display:flex;gap:0;background:var(--surface2);border-radius:9px;padding:3px;margin-bottom:20px;border:1px solid var(--border);flex-wrap:wrap" id="algo-tabs">
+      <button class="plat-tab active" data-plat="ig" onclick="switchAlgoTab('ig',this)" style="flex:1;min-width:80px">📸 IG</button>
+      <button class="plat-tab" data-plat="tw" onclick="switchAlgoTab('tw',this)" style="flex:1;min-width:80px">𝕏 Twitter</button>
+      <button class="plat-tab" data-plat="tk" onclick="switchAlgoTab('tk',this)" style="flex:1;min-width:80px">▶ TikTok</button>
+      <button class="plat-tab" data-plat="li" onclick="switchAlgoTab('li',this)" style="flex:1;min-width:80px">in LinkedIn</button>
+      <button class="plat-tab" data-plat="yt" onclick="switchAlgoTab('yt',this)" style="flex:1;min-width:80px">▷ YouTube</button>
+      <button class="plat-tab" data-plat="fb" onclick="switchAlgoTab('fb',this)" style="flex:1;min-width:80px">f Facebook</button>
+      <button class="plat-tab" data-plat="sc" onclick="switchAlgoTab('sc',this)" style="flex:1;min-width:80px">👻 Snap</button>
+    </div>
+    <div id="algo-content"></div>
+    <div class="card" style="margin-top:16px">
+      <div class="card-title">✦ AI Content Optimizer</div>
+      <div class="card-sub">Paste your post and get algorithm-specific tips</div>
+      <textarea class="textarea" id="algo-input" rows="3" placeholder="Paste your caption, video title, or content idea here..."></textarea>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <select class="select" id="algo-plat-select" style="flex:1">
+          <option value="ig">Instagram</option><option value="tw">Twitter / X</option><option value="tk">TikTok</option><option value="li">LinkedIn</option><option value="yt">YouTube</option><option value="fb">Facebook</option><option value="sc">Snapchat</option>
+        </select>
+        <button class="btn btn-primary" onclick="optimizeForAlgo()">✦ Optimize</button>
+      </div>
+      <div id="algo-optimize-result"></div>
+    </div>
   </div>
 
   </div><!-- /content -->
@@ -644,8 +768,8 @@ svg.chart{width:100%;height:180px;display:block}
 //  SUPABASE CONFIG
 //  Replace these with your Supabase project values
 // ═══════════════════════════════════════════════
-const SUPABASE_URL = 'https://mlggtajkjchmdlkgiwll.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1sZ2d0YWpramNobWRsa2dpd2xsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQxMjA3NTQsImV4cCI6MjA4OTY5Njc1NH0.WGYkDG_COs16e16pS2Z1PBJsJxeKryL6hszkR_kVLj8';
+const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
 
 let sb = null;
 let currentUser = null;
@@ -744,12 +868,14 @@ function switchTab(tab, el) {
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   document.getElementById('tab-'+tab).classList.add('active');
   if(el) el.classList.add('active');
-  const titles={dashboard:'Dashboard',composer:'Post Composer',queue:'Post Queue',calendar:'Content Calendar',ideas:'Idea Engine',proofread:'Proofread & Markup',analytics:'Analytics',connections:'Connected Accounts'};
+  const titles={dashboard:'Dashboard',composer:'Post Composer',queue:'Post Queue',calendar:'Content Calendar',ideas:'Idea Engine',proofread:'Proofread & Markup',analytics:'Analytics',connections:'Connected Accounts',pitchdeck:'Pitch Decks',rolodex:'Rolodex',algorithm:'Algorithm Guide'};
   document.getElementById('topbar-title').textContent=titles[tab]||tab;
   if(tab==='queue') loadPostsFromAPI();
   if(tab==='calendar') renderCalendar();
   if(tab==='analytics') { analyticsData=null; loadAnalytics(); }
   if(tab==='connections') renderConnectionsTab();
+  if(tab==='rolodex') renderContacts();
+  if(tab==='algorithm') renderAlgoTab('ig');
 }
 
 // ── PLATFORM TOGGLE ────────────────────────────
@@ -873,7 +999,7 @@ async function generateIdeas(){
           <button class="btn btn-ghost btn-sm" style="font-size:11px" id="save-idea-${i}" onclick="saveIdea(${i},'${escapeHtml(idea.type||'')}','${escapeHtml(idea.title||'').replace(/'/g,"\\'")}','${escapeHtml(idea.description||'').replace(/'/g,"\\'")}','${(idea.tags||[]).join(',')}')">⊕ Save</button>
         </div>
       </div>`).join('')}</div>
-      <div style="text-align:center;margin-top:11px;font-size:12px;color:var(--muted2)">Click <strong style="color:var(--text)">Use in Composer</strong> to draft it or <strong style="color:var(--text)">Save</strong> to keep it.</div>`;
+      <div style="text-align:center;margin-top:11px;font-size:12px;color:var(--text-secondary)">Click <strong style="color:var(--text)">Use in Composer</strong> to draft it or <strong style="color:var(--text)">Save</strong> to keep it.</div>`;
   }catch(e){
     el.innerHTML=`<div class="ai-response" style="border-color:var(--danger);color:var(--danger);padding:14px">Ideas generation failed. Please try again — the AI sometimes takes a moment to warm up.</div>`;
     console.error('Ideas error:', e);
@@ -926,15 +1052,15 @@ async function proofreadContent(){
     const scores=data.scores;
     const overall=Math.round(Object.values(scores).reduce((a,b)=>a+b,0)/5);
     const sc=overall>=80?'var(--success)':overall>=60?'var(--warn)':'var(--danger)';
-    scoreEl.innerHTML=`<div style="text-align:center;margin-bottom:14px"><div style="font-family:'Bebas Neue';font-size:50px;color:${sc};line-height:1">${overall}</div><div style="font-size:10px;color:var(--muted2);letter-spacing:.1em;text-transform:uppercase">Overall Score</div></div>`+
+    scoreEl.innerHTML=`<div style="text-align:center;margin-bottom:14px"><div style="font-family:'Instrument Serif',serif;font-size:50px;color:${sc};line-height:1">${overall}</div><div style="font-size:10px;color:var(--text-secondary);letter-spacing:.1em;text-transform:uppercase">Overall Score</div></div>`+
       Object.entries(scores).map(([k,v])=>{
         const label=k.replace('_',' ').replace(/\b\w/g,c=>c.toUpperCase());
         const col=v>=80?'var(--success)':v>=60?'var(--warn)':'var(--danger)';
-        return `<div style="margin-bottom:9px"><div style="display:flex;justify-content:space-between;margin-bottom:3px;font-size:12px"><span style="color:var(--muted2)">${label}</span><span style="font-family:'DM Mono';color:${col}">${v}</span></div><div class="score-bar"><div class="score-fill" style="width:${v}%;background:${col}"></div></div></div>`;
+        return `<div style="margin-bottom:9px"><div style="display:flex;justify-content:space-between;margin-bottom:3px;font-size:12px"><span style="color:var(--text-secondary)">${label}</span><span style="font-family:'JetBrains Mono';color:${col}">${v}</span></div><div class="score-bar"><div class="score-fill" style="width:${v}%;background:${col}"></div></div></div>`;
       }).join('');
     let marked=escapeHtml(text);
     (data.issues||[]).forEach(issue=>{if(issue.text){const cls=issue.type==='error'?'mark-error':'mark-suggest';marked=marked.replace(escapeHtml(issue.text),`<span class="${cls}" title="${escapeHtml(issue.reason+' → '+issue.fix)}">${escapeHtml(issue.text)}</span>`);}});
-    el.innerHTML=`<div class="ai-response" style="margin-top:11px"><div class="ai-badge">Analysis Complete</div><div style="font-size:12px;color:var(--muted2);margin-bottom:9px">${escapeHtml(data.summary||'')}</div><div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:7px">Marked Copy</div><div class="proof-output" style="margin-bottom:10px">${marked}</div><div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:7px">Improved Version</div><div class="proof-output" style="margin-bottom:10px">${escapeHtml(data.improved_version||'')}</div><button class="btn btn-primary btn-sm" onclick="this.previousElementSibling.previousElementSibling.textContent&&(document.getElementById('proof-input').value=this.previousElementSibling.textContent)">Apply Improved</button></div>`;
+    el.innerHTML=`<div class="ai-response" style="margin-top:11px"><div class="ai-badge">Analysis Complete</div><div style="font-size:12px;color:var(--text-secondary);margin-bottom:9px">${escapeHtml(data.summary||'')}</div><div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:7px">Marked Copy</div><div class="proof-output" style="margin-bottom:10px">${marked}</div><div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:7px">Improved Version</div><div class="proof-output" style="margin-bottom:10px">${escapeHtml(data.improved_version||'')}</div><button class="btn btn-primary btn-sm" onclick="this.previousElementSibling.previousElementSibling.textContent&&(document.getElementById('proof-input').value=this.previousElementSibling.textContent)">Apply Improved</button></div>`;
   }catch(e){el.innerHTML=`<div class="ai-response" style="margin-top:11px;border-color:var(--danger);color:var(--danger)">Analysis failed. Try again.</div>`;scoreEl.innerHTML='<div style="text-align:center;padding:18px 0;color:var(--danger);font-size:12px">Failed</div>';}
   btn.disabled=false;btn.textContent='⊕ Analyze';
 }
@@ -954,7 +1080,7 @@ function updateDashboard() {
   if (!du) return;
   const upcoming = cachedPosts.filter(p=>p.status==='scheduled'||p.status==='review').slice(0,5);
   if (!upcoming.length) {
-    du.innerHTML = '<div style="text-align:center;padding:24px;color:var(--muted2);font-size:13px">No upcoming posts yet.<br><button class="btn btn-ghost btn-sm" style="margin-top:10px" onclick="switchTab(\'composer\',document.querySelectorAll(\'.nav-item\')[1])">+ Create your first post</button></div>';
+    du.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text-secondary);font-size:13px">No upcoming posts yet.<br><button class="btn btn-ghost btn-sm" style="margin-top:10px" onclick="switchTab(\'composer\',document.querySelectorAll(\'.nav-item\')[1])">+ Create your first post</button></div>';
     return;
   }
   du.innerHTML = upcoming.map(q=>`
@@ -991,7 +1117,7 @@ async function getAuthHeaders() {
 async function loadPostsFromAPI() {
   if (isDemo) { renderQueueFromCache(); updateDashboard(); return; }
   const list = document.getElementById('queue-list');
-  list.innerHTML = '<div style="text-align:center;padding:36px;color:var(--muted2);font-size:13px"><div class="loading-dots"><span></span><span></span><span></span></div></div>';
+  list.innerHTML = '<div style="text-align:center;padding:36px;color:var(--text-secondary);font-size:13px"><div class="loading-dots"><span></span><span></span><span></span></div></div>';
   try {
     const headers = await getAuthHeaders();
     const res = await fetch('/api/posts', { headers });
@@ -1026,7 +1152,7 @@ function renderQueueFromCache() {
   document.querySelectorAll('[id^="qf-"]').forEach(b => b.className = 'btn btn-ghost btn-sm');
   const fb = document.getElementById('qf-' + currentFilter); if (fb) fb.className = 'btn btn-primary btn-sm';
   if (!items.length) {
-    list.innerHTML = '<div style="text-align:center;padding:36px;color:var(--muted2);font-size:13px">No posts here yet.</div>';
+    list.innerHTML = '<div style="text-align:center;padding:36px;color:var(--text-secondary);font-size:13px">No posts here yet.</div>';
     return;
   }
   list.innerHTML = items.map(q => `
@@ -1037,7 +1163,7 @@ function renderQueueFromCache() {
         <div class="queue-meta"><span>${q.date}</span><span>${q.time}</span><span>${(q.hashtags||[]).slice(0,2).map(h=>escapeHtml(h)).join(' ')}</span></div>
       </div>
       <div class="queue-status status-${q.status}">${q.status}</div>
-      <button class="btn btn-ghost btn-sm" onclick="deletePost('${q.id}')" title="Delete" style="padding:4px 8px;color:var(--muted)">✕</button>
+      <button class="btn btn-ghost btn-sm" onclick="deletePost('${q.id}')" title="Delete" style="padding:4px 8px;color:var(--text-muted)">✕</button>
     </div>`).join('');
 }
 
@@ -1314,12 +1440,12 @@ const demoPlatDemographics = {
 function renderDemographics(key) {
   const d = demoPlatDemographics[key];
   document.getElementById('demographics-panel').innerHTML = `
-    <div style="font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:10px">Gender Split</div>
-    ${d.gender.map(g=>`<div class="demo-bar-wrap"><div class="demo-bar-label"><span>${g.label}</span><span style="font-family:'DM Mono'">${g.pct}%</span></div><div class="demo-bar"><div class="demo-fill" style="width:${g.pct}%;background:${g.color}"></div></div></div>`).join('')}
-    <div style="font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:14px 0 10px">Age Groups</div>
-    ${d.ages.map(a=>`<div class="demo-bar-wrap"><div class="demo-bar-label"><span>${a.label}</span><span style="font-family:'DM Mono'">${a.pct}%</span></div><div class="demo-bar"><div class="demo-fill" style="width:${a.pct}%;background:var(--accent)"></div></div></div>`).join('')}
-    <div style="font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:14px 0 8px">Top Locations</div>
-    ${d.locations.map((l,i)=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px"><span style="color:var(--muted2)">${i+1}. ${l}</span><span style="font-family:'DM Mono';color:var(--text)">${(20-i*3.5).toFixed(1)}%</span></div>`).join('')}`;
+    <div style="font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px">Gender Split</div>
+    ${d.gender.map(g=>`<div class="demo-bar-wrap"><div class="demo-bar-label"><span>${g.label}</span><span style="font-family:'JetBrains Mono'">${g.pct}%</span></div><div class="demo-bar"><div class="demo-fill" style="width:${g.pct}%;background:${g.color}"></div></div></div>`).join('')}
+    <div style="font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);margin:14px 0 10px">Age Groups</div>
+    ${d.ages.map(a=>`<div class="demo-bar-wrap"><div class="demo-bar-label"><span>${a.label}</span><span style="font-family:'JetBrains Mono'">${a.pct}%</span></div><div class="demo-bar"><div class="demo-fill" style="width:${a.pct}%;background:var(--accent)"></div></div></div>`).join('')}
+    <div style="font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);margin:14px 0 8px">Top Locations</div>
+    ${d.locations.map((l,i)=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px"><span style="color:var(--text-secondary)">${i+1}. ${l}</span><span style="font-family:'JetBrains Mono';color:var(--text)">${(20-i*3.5).toFixed(1)}%</span></div>`).join('')}`;
 }
 
 const postCaptions = {
@@ -1342,23 +1468,497 @@ function renderTopPosts(key, color) {
   }));
   document.getElementById('top-posts-grid').innerHTML = posts.map(p => `
     <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:13px">
-      <div style="background:var(--surface3);border-radius:7px;height:90px;display:flex;align-items:center;justify-content:center;margin-bottom:10px;font-size:20px;color:var(--muted)">
+      <div style="background:var(--surface3);border-radius:7px;height:90px;display:flex;align-items:center;justify-content:center;margin-bottom:10px;font-size:20px;color:var(--text-muted)">
         ${isYT ? '▷' : '📷'}
       </div>
       <div style="font-size:12px;color:var(--text);line-height:1.5;margin-bottom:10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${escapeHtml(p.caption)}</div>
       ${isYT ? `
-      <div style="display:flex;gap:10px;font-size:10px;font-family:'DM Mono';flex-wrap:wrap">
+      <div style="display:flex;gap:10px;font-size:10px;font-family:'JetBrains Mono';flex-wrap:wrap">
         <span style="color:var(--yt)">▶ ${fmtNum(p.views)}</span>
         <span style="color:var(--accent2)">❤ ${fmtNum(p.likes)}</span>
-        <span style="color:var(--muted2)">💬 ${fmtNum(p.comments)}</span>
+        <span style="color:var(--text-secondary)">💬 ${fmtNum(p.comments)}</span>
         <span style="color:var(--accent)">⏱ ${p.watchMin}m avg</span>
       </div>` : `
-      <div style="display:flex;gap:10px;font-size:10px;font-family:'DM Mono'">
+      <div style="display:flex;gap:10px;font-size:10px;font-family:'JetBrains Mono'">
         <span style="color:var(--accent2)">❤ ${fmtNum(p.likes)}</span>
-        <span style="color:var(--muted2)">💬 ${fmtNum(p.comments)}</span>
-        <span style="color:var(--muted2)">👁 ${fmtNum(p.reach)}</span>
+        <span style="color:var(--text-secondary)">💬 ${fmtNum(p.comments)}</span>
+        <span style="color:var(--text-secondary)">👁 ${fmtNum(p.reach)}</span>
       </div>`}
     </div>`).join('');
+}
+
+// ══════════════════════════════════════════════════════════
+//  MEDIA UPLOAD
+// ══════════════════════════════════════════════════════════
+let mediaFiles = [];
+
+function handleMediaFiles(files) {
+  mediaFiles = [...mediaFiles, ...Array.from(files)];
+  renderMediaPreview();
+}
+
+function handleMediaDrop(e) {
+  e.preventDefault();
+  document.getElementById('media-dropzone').style.borderColor = 'var(--border)';
+  handleMediaFiles(e.dataTransfer.files);
+}
+
+function renderMediaPreview() {
+  const grid = document.getElementById('media-preview-grid');
+  const indicator = document.getElementById('media-type-indicator');
+  const previewMedia = document.getElementById('preview-media');
+  if (!grid) return;
+
+  const hasVideo = mediaFiles.some(f => f.type.startsWith('video/'));
+  const hasImages = mediaFiles.some(f => f.type.startsWith('image/'));
+
+  if (indicator) {
+    if (hasVideo) {
+      indicator.style.display = 'block';
+      indicator.innerHTML = `<span style="color:var(--accent)">▶ Video detected</span> — will be posted as a Reel on Instagram, Short on YouTube, and video on other platforms`;
+    } else if (mediaFiles.length > 1) {
+      indicator.style.display = 'block';
+      indicator.innerHTML = `<span style="color:var(--accent)">📸 ${mediaFiles.length} photos</span> — will be posted as a carousel on Instagram & LinkedIn`;
+    } else {
+      indicator.style.display = 'none';
+    }
+  }
+
+  grid.innerHTML = mediaFiles.map((f, i) => {
+    const url = URL.createObjectURL(f);
+    const isVideo = f.type.startsWith('video/');
+    return `<div style="position:relative;width:72px;height:72px;border-radius:8px;overflow:hidden;border:1px solid var(--border);flex-shrink:0">
+      ${isVideo
+        ? `<video src="${url}" style="width:100%;height:100%;object-fit:cover"></video><div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.4);font-size:18px">▶</div>`
+        : `<img src="${url}" style="width:100%;height:100%;object-fit:cover">`}
+      <button onclick="removeMedia(${i})" style="position:absolute;top:2px;right:2px;background:rgba(0,0,0,.7);border:none;color:#fff;border-radius:50%;width:18px;height:18px;cursor:pointer;font-size:10px;display:flex;align-items:center;justify-content:center">✕</button>
+    </div>`;
+  }).join('');
+
+  // Update live preview
+  if (previewMedia && mediaFiles.length > 0) {
+    const f = mediaFiles[0];
+    const url = URL.createObjectURL(f);
+    if (f.type.startsWith('video/')) {
+      previewMedia.innerHTML = `<video src="${url}" style="width:100%;height:100%;object-fit:cover;border-radius:7px" controls></video>`;
+    } else {
+      previewMedia.innerHTML = `<img src="${url}" style="width:100%;height:100%;object-fit:cover;border-radius:7px">`;
+    }
+    previewMedia.style.height = 'auto';
+  } else if (previewMedia) {
+    previewMedia.innerHTML = '📷 Media will appear here';
+    previewMedia.style.height = '140px';
+  }
+}
+
+function removeMedia(i) {
+  mediaFiles.splice(i, 1);
+  renderMediaPreview();
+}
+
+// ══════════════════════════════════════════════════════════
+//  PITCH DECK GENERATOR
+// ══════════════════════════════════════════════════════════
+const savedPitches = [];
+
+async function generatePitchDeck() {
+  const brand  = document.getElementById('pitch-brand').value.trim();
+  const target = document.getElementById('pitch-target').value.trim();
+  const niche  = document.getElementById('pitch-niche').value.trim();
+  const type   = document.getElementById('pitch-type').value;
+  const stats  = document.getElementById('pitch-stats').value.trim();
+  if (!brand || !target) { toast('Fill in your brand name and target company', 'error'); return; }
+
+  const el  = document.getElementById('pitch-result');
+  const btn = document.querySelector('[onclick="generatePitchDeck()"]');
+  btn.disabled = true; btn.textContent = 'Generating...';
+  showLoading(el);
+
+  try {
+    const prompt = `Create a professional ${type} pitch deck outline for:
+Brand: ${brand}
+Target: ${target}
+Niche: ${niche||'Content Creator'}
+Stats: ${stats||'Not provided'}
+
+Structure it with these sections:
+1. Executive Summary (2-3 sentences)
+2. About ${brand} (who we are, what we do)
+3. Audience Demographics (who follows us)
+4. Key Stats & Social Proof (use the stats provided)
+5. Partnership Opportunity (what we're proposing)
+6. Deliverables (what they get)
+7. Pricing Tiers (3 tiers: Basic, Standard, Premium with example prices)
+8. Why ${target}? (why this is a great fit)
+9. Call to Action
+
+Make it compelling, professional, and persuasive. Format with clear headings.`;
+
+    const raw = await callClaude(prompt, 'You are a professional brand partnership strategist and copywriter. Write compelling, professional pitch decks.');
+    const title = `${brand} × ${target} — ${type}`;
+
+    el.innerHTML = `<div class="ai-response">
+      <div class="ai-badge">Pitch Deck Generated</div>
+      <div style="white-space:pre-wrap;font-size:13px;line-height:1.7;margin-bottom:12px">${escapeHtml(raw)}</div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-primary btn-sm" onclick="savePitch('${escapeHtml(title)}',this)">⊕ Save Pitch Deck</button>
+        <button class="btn btn-ghost btn-sm" onclick="copyPitch(this)">⎘ Copy to Clipboard</button>
+      </div>
+    </div>`;
+
+  } catch(e) { el.innerHTML = `<div class="ai-response" style="border-color:var(--danger);color:var(--danger)">Generation failed. Try again.</div>`; }
+  btn.disabled = false; btn.textContent = '✦ Generate Pitch Deck';
+}
+
+function savePitch(title, btn) {
+  const content = btn.closest('.ai-response').querySelector('div[style*="pre-wrap"]').textContent;
+  savedPitches.push({ title, content, date: new Date().toLocaleDateString() });
+  renderSavedPitches();
+  toast('Pitch deck saved ✓');
+  btn.textContent = '✓ Saved'; btn.style.color = 'var(--success)';
+}
+
+function copyPitch(btn) {
+  const content = btn.closest('.ai-response').querySelector('div[style*="pre-wrap"]').textContent;
+  navigator.clipboard.writeText(content).then(() => toast('Copied to clipboard ✓'));
+}
+
+function renderSavedPitches() {
+  const el = document.getElementById('saved-pitches');
+  if (!el) return;
+  if (!savedPitches.length) { el.innerHTML = '<div style="text-align:center;padding:28px;color:var(--text-secondary);font-size:13px">No pitch decks yet.</div>'; return; }
+  el.innerHTML = savedPitches.map((p,i) => `
+    <div style="border:1px solid var(--border);border-radius:9px;margin-bottom:8px;overflow:hidden">
+      <div style="display:flex;align-items:center;padding:12px 14px;cursor:pointer;background:var(--surface2)" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+        <div style="flex:1"><div style="font-size:13px;font-weight:600">${escapeHtml(p.title)}</div><div style="font-size:11px;color:var(--text-secondary)">${p.date}</div></div>
+        <span style="color:var(--text-secondary);font-size:11px">▼</span>
+      </div>
+      <div style="display:none;padding:14px;font-size:12px;line-height:1.7;white-space:pre-wrap;border-top:1px solid var(--border)">${escapeHtml(p.content)}</div>
+    </div>`).join('');
+}
+
+// ══════════════════════════════════════════════════════════
+//  ROLODEX
+// ══════════════════════════════════════════════════════════
+let contacts = [];
+let editingContactId = null;
+
+function showAddContact() {
+  editingContactId = null;
+  renderContactForm({});
+}
+
+function renderContactForm(c) {
+  const wrap = document.getElementById('contact-form-wrap');
+  wrap.style.display = 'block';
+  wrap.innerHTML = `<div class="card">
+    <div class="card-title">${editingContactId ? 'Edit' : 'Add'} Contact</div>
+    <div class="grid-2" style="gap:10px;margin-bottom:12px">
+      <div class="field-group"><div class="field-label">Name *</div><input class="input" id="cf-name" value="${c.name||''}" placeholder="Full name"></div>
+      <div class="field-group"><div class="field-label">Company</div><input class="input" id="cf-company" value="${c.company||''}" placeholder="Company or brand name"></div>
+      <div class="field-group"><div class="field-label">Email</div><input class="input" id="cf-email" type="email" value="${c.email||''}" placeholder="email@example.com"></div>
+      <div class="field-group"><div class="field-label">Phone</div><input class="input" id="cf-phone" value="${c.phone||''}" placeholder="+1 555 000 0000"></div>
+      <div class="field-group"><div class="field-label">Role / Title</div><input class="input" id="cf-role" value="${c.role||''}" placeholder="e.g. Marketing Manager, POC"></div>
+      <div class="field-group"><div class="field-label">Type</div>
+        <select class="select" id="cf-type" style="width:100%">
+          ${['brand','agency','creator','pr','client','other'].map(t=>`<option value="${t}" ${c.type===t?'selected':''}>${t.charAt(0).toUpperCase()+t.slice(1)}</option>`).join('')}
+        </select>
+      </div>
+      <div class="field-group" style="grid-column:1/-1"><div class="field-label">Notes</div><textarea class="textarea" id="cf-notes" rows="2" placeholder="Any notes about this contact...">${c.notes||''}</textarea></div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-primary" onclick="saveContact()">${editingContactId ? 'Update' : 'Add'} Contact</button>
+      <button class="btn btn-ghost" onclick="document.getElementById('contact-form-wrap').style.display='none'">Cancel</button>
+    </div>
+  </div>`;
+  wrap.scrollIntoView({ behavior:'smooth', block:'nearest' });
+}
+
+function saveContact() {
+  const name = document.getElementById('cf-name').value.trim();
+  if (!name) { toast('Name is required', 'error'); return; }
+  const contact = {
+    id: editingContactId || Date.now().toString(),
+    name, company: document.getElementById('cf-company').value.trim(),
+    email: document.getElementById('cf-email').value.trim(),
+    phone: document.getElementById('cf-phone').value.trim(),
+    role:  document.getElementById('cf-role').value.trim(),
+    type:  document.getElementById('cf-type').value,
+    notes: document.getElementById('cf-notes').value.trim(),
+    added: new Date().toLocaleDateString(),
+  };
+  if (editingContactId) {
+    const idx = contacts.findIndex(c=>c.id===editingContactId);
+    if (idx >= 0) contacts[idx] = contact;
+  } else {
+    contacts.unshift(contact);
+  }
+  document.getElementById('contact-form-wrap').style.display = 'none';
+  editingContactId = null;
+  renderContacts();
+  toast((editingContactId ? 'Contact updated' : 'Contact added') + ' ✓');
+}
+
+function deleteContact(id) {
+  if (!confirm('Delete this contact?')) return;
+  contacts = contacts.filter(c=>c.id!==id);
+  renderContacts();
+  toast('Contact deleted');
+}
+
+function editContact(id) {
+  const c = contacts.find(x=>x.id===id);
+  if (!c) return;
+  editingContactId = id;
+  renderContactForm(c);
+}
+
+function filterContacts() {
+  renderContacts();
+}
+
+function renderContacts() {
+  const grid = document.getElementById('contacts-grid');
+  if (!grid) return;
+  const search = document.getElementById('rolodex-search')?.value.toLowerCase() || '';
+  const typeFilter = document.getElementById('rolodex-filter')?.value || '';
+  let filtered = contacts;
+  if (search) filtered = filtered.filter(c => `${c.name} ${c.company} ${c.email} ${c.notes}`.toLowerCase().includes(search));
+  if (typeFilter) filtered = filtered.filter(c => c.type === typeFilter);
+  if (!filtered.length) {
+    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-secondary);font-size:13px">${contacts.length ? 'No contacts match your search.' : 'No contacts yet — add your first one above.'}</div>`;
+    return;
+  }
+  const typeColors = { brand:'var(--ig)', agency:'var(--tw)', creator:'var(--accent)', pr:'var(--accent2)', client:'var(--success)', other:'var(--muted2)' };
+  grid.innerHTML = filtered.map(c => `
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;transition:border-color .15s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+      <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px">
+        <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,${typeColors[c.type]||'var(--muted)'},var(--surface3));display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;flex-shrink:0">${c.name.charAt(0).toUpperCase()}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:14px;font-weight:700;color:var(--text)">${escapeHtml(c.name)}</div>
+          <div style="font-size:11px;color:var(--text-secondary)">${escapeHtml(c.role||c.company||'')}</div>
+        </div>
+        <span style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:2px 7px;border-radius:4px;background:rgba(90,106,126,.15);color:var(--text-secondary);white-space:nowrap">${c.type}</span>
+      </div>
+      ${c.company ? `<div style="font-size:12px;color:var(--text-secondary);margin-bottom:4px">🏢 ${escapeHtml(c.company)}</div>` : ''}
+      ${c.email ? `<div style="font-size:12px;color:var(--accent);margin-bottom:4px"><a href="mailto:${escapeHtml(c.email)}" style="color:inherit;text-decoration:none">✉ ${escapeHtml(c.email)}</a></div>` : ''}
+      ${c.phone ? `<div style="font-size:12px;color:var(--text-secondary);margin-bottom:4px">📞 ${escapeHtml(c.phone)}</div>` : ''}
+      ${c.notes ? `<div style="font-size:11px;color:var(--text-muted);margin-top:8px;padding:6px 8px;background:var(--surface2);border-radius:6px;line-height:1.4">${escapeHtml(c.notes)}</div>` : ''}
+      <div style="display:flex;gap:6px;margin-top:10px">
+        <button class="btn btn-ghost btn-sm" style="flex:1;font-size:11px" onclick="editContact('${c.id}')">✎ Edit</button>
+        <button class="btn btn-ghost btn-sm" style="font-size:11px;color:var(--danger);border-color:rgba(255,68,68,.2)" onclick="deleteContact('${c.id}')">✕</button>
+      </div>
+    </div>`).join('');
+}
+
+function showImportModal() {
+  document.getElementById('import-modal').style.display = 'block';
+}
+
+function importCSV() {
+  const raw = document.getElementById('import-csv').value.trim();
+  if (!raw) { toast('Paste CSV data first', 'error'); return; }
+  const lines = raw.split('\n').filter(l=>l.trim());
+  let added = 0;
+  lines.forEach(line => {
+    const [name,email,phone,company,type,notes] = line.split(',').map(s=>s.trim());
+    if (name) { contacts.unshift({ id:Date.now().toString()+Math.random(), name, email:email||'', phone:phone||'', company:company||'', type:(['brand','agency','creator','pr','client','other'].includes(type)?type:'other'), notes:notes||'', added:new Date().toLocaleDateString() }); added++; }
+  });
+  document.getElementById('import-modal').style.display = 'none';
+  document.getElementById('import-csv').value = '';
+  renderContacts();
+  toast(`Imported ${added} contact${added!==1?'s':''} ✓`);
+}
+
+// ══════════════════════════════════════════════════════════
+//  ALGORITHM GUIDE
+// ══════════════════════════════════════════════════════════
+const algoData = {
+  ig: {
+    color:'var(--ig)', name:'Instagram',
+    summary:'Instagram ranks content using a multi-signal AI that predicts how likely each user is to engage with a post within the first hour.',
+    signals:[
+      {label:'Watch Time / Completion Rate', weight:95, desc:'For Reels, the #1 signal. Videos that get watched to the end get massively boosted. Aim for loops.'},
+      {label:'Saves', weight:90, desc:'The highest-value engagement signal. A save tells Instagram your content is worth revisiting.'},
+      {label:'Shares (especially to Stories)', weight:88, desc:'Shares to DMs and Stories are heavily weighted — they indicate viral potential.'},
+      {label:'Comments (especially long ones)', weight:75, desc:'Multi-word comments signal real engagement. Responding to comments in the first 30 min boosts reach.'},
+      {label:'Likes', weight:60, desc:'Still counts but weighted less than saves/shares. Easy to farm = lower value to algorithm.'},
+      {label:'Profile Visits After Seeing Post', weight:70, desc:'If your post makes someone visit your profile, that\'s a strong quality signal.'},
+    ],
+    tips:['Post Reels 3-5x per week — the algorithm heavily favors video', 'Hook viewers in the first 0.5 seconds', 'Use 3-5 niche hashtags, not 30 generic ones', 'Post when your audience is most active (check Insights)', 'Respond to every comment within the first hour', 'Create content that begs to be saved — tutorials, lists, tips'],
+    bestTime:'Tues–Fri, 6–9 AM or 7–10 PM in your audience\'s timezone',
+    worstMistake:'Posting and ghosting — the algorithm penalizes accounts that don\'t engage back',
+  },
+  tw: {
+    color:'var(--tw)', name:'X / Twitter',
+    summary:'X\'s algorithm (For You feed) prioritizes content from accounts you interact with, content that generates rapid engagement, and content the algorithm predicts you\'ll like based on your behavior.',
+    signals:[
+      {label:'Replies', weight:95, desc:'Reply count is the strongest signal — it shows the post sparked conversation.'},
+      {label:'Reposts / Retweets', weight:88, desc:'Reposts indicate your content resonated enough to share. Huge for reach.'},
+      {label:'Bookmarks', weight:85, desc:'Like Instagram saves — bookmarks signal high-quality, reference-worthy content.'},
+      {label:'Likes', weight:65, desc:'Still matters but lower weight than replies and reposts.'},
+      {label:'Dwell Time', weight:80, desc:'How long someone stares at your tweet before scrolling. Long-form tweets and threads benefit.'},
+      {label:'Profile Subscription Status', weight:70, desc:'X Premium subscribers get a slight algorithmic boost.'},
+    ],
+    tips:['Start tweets with a bold statement or question — not "I"', 'Threads outperform single tweets significantly', 'Post 3-7 times per day for optimal reach', 'Reply to trending conversations in your niche', 'Use 1-2 hashtags max — more looks spammy', 'Quote tweets get more reach than retweets'],
+    bestTime:'Mon–Fri, 8–10 AM and 6–9 PM ET',
+    worstMistake:'Posting links in your main tweet — X suppresses external links. Put them in replies.',
+  },
+  tk: {
+    color:'var(--tk)', name:'TikTok',
+    summary:'TikTok\'s For You Page algorithm is the most powerful discovery engine in social media. It shows content to non-followers and optimizes purely for watch behavior.',
+    signals:[
+      {label:'Video Completion Rate', weight:98, desc:'The single most important signal. Getting 100% completion — or loop views — is the holy grail.'},
+      {label:'Rewatches / Loops', weight:95, desc:'TikTok specifically rewards content people watch more than once. Build in loop hooks.'},
+      {label:'Shares', weight:90, desc:'Shares outside TikTok (WhatsApp, texts, etc.) are incredibly powerful signals.'},
+      {label:'Comments', weight:80, desc:'Comments that ask questions or debate get the algorithm excited. Pin a controversial comment.'},
+      {label:'Likes', weight:65, desc:'Baseline signal. Important but not as powerful as completion and shares.'},
+      {label:'Profile Visits + Follows', weight:75, desc:'When a video makes someone follow you immediately, TikTok pushes it harder.'},
+    ],
+    tips:['Hook in the first 0-1.5 seconds — no intros', 'Shorter videos (15-30s) have better completion rates', 'Use trending sounds — they get algorithmic boosts', 'Post 1-4x per day for maximum reach potential', 'Stitch and Duet trending content in your niche', 'End with a cliffhanger or open loop to encourage rewatches'],
+    bestTime:'Tues–Fri, 6–10 AM, 2–5 PM, or 7–11 PM',
+    worstMistake:'Low video quality — blurry or poorly lit videos get suppressed before they even get a chance.',
+  },
+  li: {
+    color:'var(--li)', name:'LinkedIn',
+    summary:'LinkedIn\'s algorithm rewards content that generates professional conversation and keeps users on the platform. It heavily favors native content and penalizes external links.',
+    signals:[
+      {label:'Comments (especially thoughtful ones)', weight:95, desc:'Comments are 6x more valuable than likes on LinkedIn. Long, substantive comments push your post to more people.'},
+      {label:'Early Engagement Velocity', weight:90, desc:'Engagement in the first 60-90 minutes is crucial. This determines initial distribution.'},
+      {label:'Dwell Time', weight:85, desc:'LinkedIn tracks how long people read your post. Long-form content and documents perform well.'},
+      {label:'Likes / Reactions', weight:65, desc:'Still counts, but a post with 10 comments outperforms one with 100 likes.'},
+      {label:'Shares', weight:70, desc:'Reshares expand reach significantly, especially from high-follower accounts.'},
+      {label:'Connection Relevance', weight:80, desc:'If your connections engage, their networks see it. Target content to your immediate audience first.'},
+    ],
+    tips:['End every post with a question to prompt comments', 'Use line breaks aggressively — one idea per line', 'Post documents/PDFs — they get carousel treatment and high dwell time', 'No external links in the post body — put them in comments', '3-5 posts per week is the sweet spot', 'Comment on others\' posts immediately before posting your own'],
+    bestTime:'Tues–Thurs, 7–9 AM or 12–1 PM',
+    worstMistake:'Putting a link in your post — LinkedIn buries any post with an external URL.',
+  },
+  yt: {
+    color:'var(--yt)', name:'YouTube',
+    summary:'YouTube\'s algorithm has two main goals: keep viewers on YouTube longer, and get them to come back. It rewards content that satisfies viewers, not just clickbait.',
+    signals:[
+      {label:'Click-Through Rate (CTR)', weight:90, desc:'The thumbnail + title combination determines if people click. Aim for 6-10% CTR.'},
+      {label:'Average View Duration', weight:95, desc:'The #1 ranking signal. If people watch 70%+ of your video, YouTube pushes it hard.'},
+      {label:'Session Time', weight:88, desc:'Does your video lead people to watch more YouTube? End screens and cards help.'},
+      {label:'Likes + Comments', weight:70, desc:'Engagement signals quality. Ask for likes and comments explicitly — it works.'},
+      {label:'Satisfaction Surveys', weight:75, desc:'YouTube sometimes asks viewers if they were satisfied. This data directly influences rankings.'},
+      {label:'Return Viewers', weight:85, desc:'Subscribers who watch within 24 hours of upload give a huge algorithmic boost.'},
+    ],
+    tips:['Spend 80% of your effort on the thumbnail and title', 'Hook in the first 30 seconds — explain what they\'ll get', 'Use chapters (timestamps) to improve retention', 'Upload consistently — same day/time each week', 'Create series to build return viewing habits', 'Respond to every comment in the first 24 hours'],
+    bestTime:'Thursday–Saturday for the upload. Set publish time for 2–4 PM in your main audience timezone.',
+    worstMistake:'Clickbait that doesn\'t deliver — high CTR + low retention destroys your channel ranking.',
+  },
+  fb: {
+    color:'var(--fb)', name:'Facebook',
+    summary:'Facebook\'s algorithm prioritizes content from friends and groups, then Pages. It heavily favors content that generates "meaningful interactions" — real conversations, not passive likes.',
+    signals:[
+      {label:'Comments + Replies', weight:95, desc:'Facebook specifically values back-and-forth conversations. Replying to comments generates more reach.'},
+      {label:'Shares (especially private)', weight:90, desc:'When people share your post to friends or in messages, that\'s a huge quality signal.'},
+      {label:'Reactions (Love, Wow, Haha)', weight:75, desc:'Emotional reactions outweigh plain likes. Content that provokes emotion performs better.'},
+      {label:'Video Watch Time', weight:88, desc:'Facebook Video and Reels both reward completion rate, similar to Instagram.'},
+      {label:'Group Engagement', weight:85, desc:'Content posted in or shared to active Groups gets massive reach multipliers.'},
+      {label:'Relationship Strength', weight:80, desc:'If someone regularly interacts with you, they see your content more.'},
+    ],
+    tips:['Post in relevant Facebook Groups — they\'re a huge organic reach multiplier', 'Go Live — Facebook Live gets 6x more reach than regular video', 'Ask questions that require a real answer, not just yes/no', 'Post at least 1x per day to stay in the algorithm', 'Avoid "engagement bait" (like this if you agree) — Facebook penalizes it', 'Facebook Reels now get significant distribution boost'],
+    bestTime:'Wed–Fri, 1–4 PM',
+    worstMistake:'Sharing only links — Facebook significantly suppresses posts that take users off-platform.',
+  },
+  sc: {
+    color:'#c8c800', name:'Snapchat',
+    summary:'Snapchat\'s algorithm focuses on Stories, Spotlight (their TikTok competitor), and the Discover feed. It rewards consistent posting and high Story completion rates.',
+    signals:[
+      {label:'Story Completion Rate', weight:95, desc:'How many people watch your entire Story from start to finish. Keep each snap under 7 seconds.'},
+      {label:'Replies to Stories', weight:90, desc:'When viewers reply to your Story, Snapchat boosts your future content to them.'},
+      {label:'Screenshots', weight:80, desc:'Screenshots indicate high-value, reference-worthy content — Snapchat tracks this.'},
+      {label:'Spotlight Views + Shares', weight:92, desc:'For Spotlight (short video), completion and shares are the primary signals.'},
+      {label:'Friend Interaction Frequency', weight:85, desc:'The more someone snaps you, the more your Stories appear at the top of their feed.'},
+      {label:'Posting Consistency', weight:75, desc:'Daily posting keeps your account at the top of followers\' feeds.'},
+    ],
+    tips:['Post to your Story every single day — consistency is key', 'Keep individual snaps short (3-7 seconds) for better completion', 'Use stickers, polls, and questions to drive replies', 'For Spotlight, hook in the first half-second', 'Post Spotlight videos 3-5x per day for best reach', 'Add text overlays — many watch without sound'],
+    bestTime:'Evenings 8–10 PM and weekends',
+    worstMistake:'Inconsistent posting — if you disappear for 3+ days, your Story ranking drops significantly.',
+  },
+};
+
+let currentAlgoTab = 'ig';
+
+function switchAlgoTab(key, el) {
+  currentAlgoTab = key;
+  document.querySelectorAll('#algo-tabs .plat-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderAlgoTab(key);
+}
+
+function renderAlgoTab(key) {
+  const d = algoData[key]; if (!d) return;
+  const el = document.getElementById('algo-content'); if (!el) return;
+  el.innerHTML = `
+    <div class="grid-2" style="gap:14px;margin-bottom:16px">
+      <div class="card" style="grid-column:1/-1">
+        <div style="font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px">How It Works</div>
+        <div style="font-size:14px;color:var(--text);line-height:1.7">${escapeHtml(d.summary)}</div>
+        <div style="margin-top:10px;padding:10px 12px;background:rgba(255,179,0,.06);border:1px solid rgba(255,179,0,.2);border-radius:8px;font-size:12px;color:var(--text-secondary)">
+          <strong style="color:var(--accent3)">⚡ Best posting time:</strong> ${escapeHtml(d.bestTime)}
+        </div>
+        <div style="margin-top:8px;padding:10px 12px;background:rgba(255,68,68,.06);border:1px solid rgba(255,68,68,.2);border-radius:8px;font-size:12px;color:var(--text-secondary)">
+          <strong style="color:var(--danger)">✕ Biggest mistake:</strong> ${escapeHtml(d.worstMistake)}
+        </div>
+      </div>
+      <div class="card">
+        <div style="font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px">Ranking Signals</div>
+        ${d.signals.map(s=>`
+          <div style="margin-bottom:12px">
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:12px">
+              <span style="font-weight:600;color:var(--text)">${escapeHtml(s.label)}</span>
+              <span style="font-family:'JetBrains Mono';color:${s.weight>=90?'var(--success)':s.weight>=75?'var(--accent)':'var(--warn)'}">${s.weight}/100</span>
+            </div>
+            <div class="score-bar"><div class="score-fill" style="width:${s.weight}%;background:${d.color}"></div></div>
+            <div style="font-size:11px;color:var(--text-secondary);margin-top:3px">${escapeHtml(s.desc)}</div>
+          </div>`).join('')}
+      </div>
+      <div class="card">
+        <div style="font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px">Optimization Tips</div>
+        ${d.tips.map((t,i)=>`
+          <div style="display:flex;gap:10px;margin-bottom:10px;align-items:flex-start">
+            <div style="width:20px;height:20px;border-radius:50%;background:${d.color};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#000;flex-shrink:0">${i+1}</div>
+            <div style="font-size:13px;color:var(--text);line-height:1.5">${escapeHtml(t)}</div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+
+  // Sync the optimize dropdown
+  const sel = document.getElementById('algo-plat-select');
+  if (sel) sel.value = key;
+}
+
+async function optimizeForAlgo() {
+  const content = document.getElementById('algo-input').value.trim();
+  const plat = document.getElementById('algo-plat-select').value;
+  if (!content) { toast('Paste your content first', 'error'); return; }
+  const el = document.getElementById('algo-optimize-result');
+  const btn = document.querySelector('[onclick="optimizeForAlgo()"]');
+  btn.disabled = true; btn.textContent = 'Analyzing...';
+  showLoading(el);
+  const d = algoData[plat];
+  try {
+    const prompt = `You are a ${d?.name||plat} algorithm expert. Analyze this content and give specific optimization tips:
+
+"${content}"
+
+Top ranking signals for ${d?.name||plat}: ${d?.signals.slice(0,3).map(s=>s.label).join(', ')}
+
+Provide:
+1. Overall score (0-100) for how algorithm-friendly this content is
+2. Top 3 specific improvements to maximize reach
+3. Suggested hook rewrite if applicable
+4. Best hashtags/keywords to add (if relevant for this platform)
+
+Be specific and actionable.`;
+    const raw = await callClaude(prompt, 'You are a social media algorithm expert. Give specific, actionable optimization advice.');
+    el.innerHTML = `<div class="ai-response" style="margin-top:12px"><div class="ai-badge">Optimization Analysis</div><div style="white-space:pre-wrap;font-size:13px;line-height:1.7">${escapeHtml(raw)}</div></div>`;
+  } catch(e) { el.innerHTML = `<div class="ai-response" style="margin-top:12px;border-color:var(--danger);color:var(--danger)">Analysis failed. Try again.</div>`; }
+  btn.disabled = false; btn.textContent = '✦ Optimize';
 }
 
 function fmtNum(n) { return n>=1000?(n/1000).toFixed(1)+'k':String(n); }
@@ -1447,8 +2047,8 @@ function renderConnectionsGrid() {
         <div class="conn-stat"><strong>${fmtNum(analyticsData_.followers||0)}</strong>Followers</div>
         <div class="conn-stat"><strong>${analyticsData_.engagement_rate||0}%</strong>Engagement</div>
         <div class="conn-stat"><strong>${analyticsData_.growth_30d>0?'+':''}${fmtNum(analyticsData_.growth_30d||0)}</strong>30d Growth</div>
-      </div>` : isConn ? `<div style="font-size:12px;color:var(--muted2)">Connected as @${conn.username||'account'}</div>` :
-      `<div style="font-size:12px;color:var(--muted2);line-height:1.5">${p.oauth ? 'Click below to connect with OAuth — no API key needed.' : 'Use manual token below, or wait for OAuth app approval.'}</div>`;
+      </div>` : isConn ? `<div style="font-size:12px;color:var(--text-secondary)">Connected as @${conn.username||'account'}</div>` :
+      `<div style="font-size:12px;color:var(--text-secondary);line-height:1.5">${p.oauth ? 'Click below to connect with OAuth — no API key needed.' : 'Use manual token below, or wait for OAuth app approval.'}</div>`;
 
     const btnHtml = isConn
       ? `<button class="conn-btn connected-btn" onclick="disconnectPlatform('${p.key}')">Disconnect</button>`
@@ -1497,7 +2097,7 @@ function renderReviewStatus() {
       <div style="font-size:18px;width:28px;text-align:center">${p.icon}</div>
       <div style="flex:1">
         <div style="font-size:13px;font-weight:600;color:var(--text)">${p.name}</div>
-        <div style="font-size:11px;color:var(--muted2);margin-top:2px">Review time: ${p.reviewTime}</div>
+        <div style="font-size:11px;color:var(--text-secondary);margin-top:2px">Review time: ${p.reviewTime}</div>
       </div>
       <span class="review-badge ${diffMap[p.reviewDiff]}">${diffLabel[p.reviewDiff]}</span>
       <a href="${p.devUrl}" target="_blank" class="btn btn-ghost btn-sm" style="font-size:11px;text-decoration:none">Apply →</a>
