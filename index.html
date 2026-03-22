@@ -768,8 +768,8 @@ svg.chart{width:100%;height:180px;display:block}
 //  SUPABASE CONFIG
 //  Replace these with your Supabase project values
 // ═══════════════════════════════════════════════
-const SUPABASE_URL = 'https://mlggtajkjchmdlkgiwll.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1sZ2d0YWpramNobWRsa2dpd2xsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQxMjA3NTQsImV4cCI6MjA4OTY5Njc1NH0.WGYkDG_COs16e16pS2Z1PBJsJxeKryL6hszkR_kVLj8';
+const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
 
 let sb = null;
 let currentUser = null;
@@ -1557,9 +1557,29 @@ function removeMedia(i) {
 }
 
 // ══════════════════════════════════════════════════════════
-//  PITCH DECK GENERATOR
+//  PITCH DECK GENERATOR  (research-backed with web search)
 // ══════════════════════════════════════════════════════════
 const savedPitches = [];
+
+// API call with web search enabled
+async function callClaudeWithSearch(prompt, system) {
+  const res = await fetch('/api/claude', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 4000,
+      use_web_search: true,
+      system: system || 'You are a professional strategist. Be thorough and specific.',
+      messages: [{ role: 'user', content: prompt }],
+    })
+  });
+  const data = await res.json();
+  if (data.content && Array.isArray(data.content)) {
+    return data.content.filter(b => b.type === 'text').map(b => b.text).join('\n');
+  }
+  return data.content?.[0]?.text || '';
+}
 
 async function generatePitchDeck() {
   const brand  = document.getElementById('pitch-brand').value.trim();
@@ -1571,42 +1591,113 @@ async function generatePitchDeck() {
 
   const el  = document.getElementById('pitch-result');
   const btn = document.querySelector('[onclick="generatePitchDeck()"]');
-  btn.disabled = true; btn.textContent = 'Generating...';
-  showLoading(el);
+  btn.disabled = true; btn.textContent = '🔍 Researching...';
+
+  el.innerHTML = `<div class="ai-response">
+    <div class="ai-badge">Research in Progress</div>
+    <div style="font-size:13px;color:var(--text-secondary);line-height:2.2">
+      <div id="step1">⏳ Researching ${escapeHtml(target)} online...</div>
+      <div id="step2" style="opacity:.4">⏳ Analyzing brand alignment...</div>
+      <div id="step3" style="opacity:.4">⏳ Writing your personalized pitch deck...</div>
+    </div>
+  </div>`;
+
+  const markDone = (n, next) => {
+    const el = document.getElementById('step' + n);
+    if (el) { el.style.color = 'var(--success)'; el.textContent = el.textContent.replace('⏳','✓'); }
+    if (next) { const el2 = document.getElementById('step' + next); if (el2) { el2.style.opacity = '1'; } }
+  };
 
   try {
-    const prompt = `Create a professional ${type} pitch deck outline for:
-Brand: ${brand}
-Target: ${target}
-Niche: ${niche||'Content Creator'}
-Stats: ${stats||'Not provided'}
+    // STEP 1 — Web research on target company
+    const research = await callClaudeWithSearch(
+      `Search the web for current information about "${target}" as a company or brand. Find: their brand values and mission, recent marketing campaigns or creator partnerships, target audience demographics, recent news or product launches (2024-2026), their social media presence and tone of voice, and any stated sustainability or community initiatives. Be specific and use real current data.`,
+      'You are a brand researcher. Search the web and return detailed, accurate, current information about companies and brands.'
+    );
+    markDone(1, 2);
 
-Structure it with these sections:
-1. Executive Summary (2-3 sentences)
-2. About ${brand} (who we are, what we do)
-3. Audience Demographics (who follows us)
-4. Key Stats & Social Proof (use the stats provided)
-5. Partnership Opportunity (what we're proposing)
-6. Deliverables (what they get)
-7. Pricing Tiers (3 tiers: Basic, Standard, Premium with example prices)
-8. Why ${target}? (why this is a great fit)
-9. Call to Action
+    // STEP 2 — Write the full pitch deck using research
+    btn.textContent = '✍️ Writing deck...';
+    markDone(2, 3);
 
-Make it compelling, professional, and persuasive. Format with clear headings.`;
+    const pitchDeck = await callClaude(
+      `You are an elite brand partnership consultant. Write a premium ${type} pitch deck using this real research about ${target}:
 
-    const raw = await callClaude(prompt, 'You are a professional brand partnership strategist and copywriter. Write compelling, professional pitch decks.');
+RESEARCH ABOUT ${target.toUpperCase()}:
+${research}
+
+CREATOR PITCHING:
+- Name: ${brand}
+- Niche: ${niche || 'Content Creator'}
+- Key Stats: ${stats || 'Not provided — suggest competitive industry rates'}
+- Deal Type: ${type}
+
+Write the full pitch deck with these sections. Make EVERY section specific — reference real things from the research. No generic filler.
+
+━━━ 1. EXECUTIVE SUMMARY ━━━
+3 powerful sentences. Open with something specific about ${target}'s current direction or a recent campaign. Position this as the obvious next step.
+
+━━━ 2. ABOUT ${brand.toUpperCase()} ━━━
+Our story, content style, mission, and what makes us different. Premium, confident tone.
+
+━━━ 3. AUDIENCE OVERVIEW ━━━
+Detailed audience breakdown — age range, interests, location split, purchasing power, and why they're exactly who ${target} wants to reach. Be specific.
+
+━━━ 4. BY THE NUMBERS ━━━
+Present ${stats || 'key metrics for this niche'} compellingly. Add context: engagement rate vs. industry average, growth rate, estimated monthly impressions. Make the numbers tell a story.
+
+━━━ 5. WHY ${target.toUpperCase()} — AND WHY NOW ━━━
+Use the research. Reference their actual values, a specific recent campaign, or a stated goal. Explain the audience overlap. Make this feel like it was written by someone who follows ${target} closely.
+
+━━━ 6. WHAT WE'LL CREATE TOGETHER ━━━
+Paint a vivid picture of the content. What would it look, feel, and sound like? Give them a creative vision that gets them excited.
+
+━━━ 7. DELIVERABLES ━━━
+Specific, itemized list: exact number of posts, Stories, Reels/videos, usage rights duration, exclusivity window, approval rounds, timeline.
+
+━━━ 8. INVESTMENT PACKAGES ━━━
+Three tiers with specific deliverables and pricing:
+• Starter — [deliverables] — $X,XXX
+• Partner (Recommended) — [deliverables] — $X,XXX  
+• Exclusive — [deliverables] — $XX,XXX
+Base on real market rates for ${niche || 'content creators'}.
+
+━━━ 9. SOCIAL PROOF ━━━
+Past brand collaborations, testimonials, or notable content wins. (If unknown, write a placeholder with instructions for what to add.)
+
+━━━ 10. NEXT STEPS ━━━
+Confident CTA. Specific ask. Proposed timeline for response and kickoff. Contact info placeholder.
+
+Make this feel unmistakably personal and premium. Someone reading this should think "they really did their homework."`,
+      'You are an elite brand partnership consultant. Write pitch decks that close 6-figure deals. Be specific, compelling, and use the research provided. Reference real things about the target company.'
+    );
+
+    markDone(3, null);
     const title = `${brand} × ${target} — ${type}`;
 
     el.innerHTML = `<div class="ai-response">
-      <div class="ai-badge">Pitch Deck Generated</div>
-      <div style="white-space:pre-wrap;font-size:13px;line-height:1.7;margin-bottom:12px">${escapeHtml(raw)}</div>
-      <div style="display:flex;gap:8px">
-        <button class="btn btn-primary btn-sm" onclick="savePitch('${escapeHtml(title)}',this)">⊕ Save Pitch Deck</button>
+      <div class="ai-badge">Research-Backed Pitch Deck Ready</div>
+      <div style="background:rgba(52,211,153,.06);border:1px solid rgba(52,211,153,.15);border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:var(--text-secondary)">
+        ✓ Live research on ${escapeHtml(target)} &nbsp;·&nbsp; ✓ Personalized to their actual campaigns &nbsp;·&nbsp; ✓ Market-rate pricing included
+      </div>
+      <div style="white-space:pre-wrap;font-size:13px;line-height:1.85;margin-bottom:14px;color:var(--text)">${escapeHtml(pitchDeck)}</div>
+      <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px">
+        <details style="font-size:12px;color:var(--text-secondary)">
+          <summary style="cursor:pointer;color:var(--accent);font-weight:500;margin-bottom:6px">▾ View research data used (${escapeHtml(target)})</summary>
+          <div style="white-space:pre-wrap;line-height:1.6;padding:12px;background:var(--surface2);border-radius:8px;margin-top:8px;font-size:12px">${escapeHtml(research)}</div>
+        </details>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
+        <button class="btn btn-primary btn-sm" onclick="savePitch(\`${escapeHtml(title).replace(/`/g,'\`')}\`,this)">⊕ Save Pitch Deck</button>
         <button class="btn btn-ghost btn-sm" onclick="copyPitch(this)">⎘ Copy to Clipboard</button>
+        <button class="btn btn-ghost btn-sm" onclick="generatePitchDeck()">↺ Regenerate</button>
       </div>
     </div>`;
 
-  } catch(e) { el.innerHTML = `<div class="ai-response" style="border-color:var(--danger);color:var(--danger)">Generation failed. Try again.</div>`; }
+  } catch(e) {
+    console.error('Pitch deck error:', e);
+    el.innerHTML = `<div class="ai-response" style="border-color:var(--danger);color:var(--danger)">Generation failed: ${escapeHtml(e.message||'Unknown error')}. Please try again.</div>`;
+  }
   btn.disabled = false; btn.textContent = '✦ Generate Pitch Deck';
 }
 
@@ -1626,16 +1717,17 @@ function copyPitch(btn) {
 function renderSavedPitches() {
   const el = document.getElementById('saved-pitches');
   if (!el) return;
-  if (!savedPitches.length) { el.innerHTML = '<div style="text-align:center;padding:28px;color:var(--text-secondary);font-size:13px">No pitch decks yet.</div>'; return; }
+  if (!savedPitches.length) { el.innerHTML = '<div style="text-align:center;padding:28px;color:var(--text-muted);font-size:13px">No pitch decks yet.</div>'; return; }
   el.innerHTML = savedPitches.map((p,i) => `
-    <div style="border:1px solid var(--border);border-radius:9px;margin-bottom:8px;overflow:hidden">
+    <div style="border:1px solid var(--border);border-radius:var(--radius);margin-bottom:8px;overflow:hidden">
       <div style="display:flex;align-items:center;padding:12px 14px;cursor:pointer;background:var(--surface2)" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
-        <div style="flex:1"><div style="font-size:13px;font-weight:600">${escapeHtml(p.title)}</div><div style="font-size:11px;color:var(--text-secondary)">${p.date}</div></div>
-        <span style="color:var(--text-secondary);font-size:11px">▼</span>
+        <div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--text)">${escapeHtml(p.title)}</div><div style="font-size:11px;color:var(--text-muted);margin-top:2px">${p.date}</div></div>
+        <span style="color:var(--text-muted);font-size:11px">▼</span>
       </div>
-      <div style="display:none;padding:14px;font-size:12px;line-height:1.7;white-space:pre-wrap;border-top:1px solid var(--border)">${escapeHtml(p.content)}</div>
+      <div style="display:none;padding:14px;font-size:12px;line-height:1.75;white-space:pre-wrap;border-top:1px solid var(--border);color:var(--text)">${escapeHtml(p.content)}</div>
     </div>`).join('');
 }
+
 
 // ══════════════════════════════════════════════════════════
 //  ROLODEX
